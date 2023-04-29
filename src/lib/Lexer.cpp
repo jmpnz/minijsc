@@ -1,107 +1,184 @@
 #include "Lexer.h"
+#include "Token.h"
 
-#include <cstdio>
+#include <cctype>
 #include <cstdint>
+#include <cstdio>
+#include <iostream>
 #include <string>
+#include <vector>
 
 namespace minijsc {
 
-auto Lexer::advance() -> char {
-    return source.at(current++);
+// Advance to the next character.
+auto Lexer::advance() -> char { return source.at(current++); }
+
+// Append the token to the vector of tokens.
+auto Lexer::addToken(TokenType typ) -> void {
+    auto lexeme = source.substr(start, current);
+    auto tok    = Token(typ, lexeme, "");
+    tokens.emplace_back(typ, "", "");
 }
 
-auto Lexer::addToken(TokenType t) -> void {
-    tokens.push_back(Token(t, "", ""));
+auto Lexer::scanTokens() -> std::vector<Token> {
+    while (!isAtEnd()) {
+        start = current;
+        scanToken();
+    }
+    tokens.emplace_back(TokenType::Eof, "", "");
+    return tokens;
 }
 
+// Scan the current token.
 auto Lexer::scanToken() -> void {
-    auto c = advance();
-    switch (c) {
-        case '(':
-            addToken(TokenType::LParen);
+    // skipWhitespace();
+    auto nextChar = advance();
+    switch (nextChar) {
+    case '(':
+        addToken(TokenType::LParen);
+        break;
+    case ')':
+        addToken(TokenType::RParen);
+        break;
+    case '{':
+        addToken(TokenType::LBrace);
+        break;
+    case '}':
+        addToken(TokenType::RBrace);
+        break;
+    case '[':
+        addToken(TokenType::LBracket);
+        break;
+    case ']':
+        addToken(TokenType::RBracket);
+        break;
+    case ',':
+        addToken(TokenType::Comma);
+        break;
+    case '.':
+        addToken(TokenType::Dot);
+        break;
+    case ';':
+        addToken(TokenType::Semicolon);
+        break;
+    case '-':
+        addToken(TokenType::Minus);
+        break;
+    case '+':
+        addToken(TokenType::Plus);
+        break;
+    case '*':
+        addToken(TokenType::Star);
+        break;
+    case '/':
+        addToken(TokenType::Slash);
+        break;
+    case '!': {
+        if (match('=')) {
+            addToken(TokenType::BangEqual);
             break;
-        default:
-           printf("Unexpected token");
+        }
+        addToken(TokenType::Bang);
+        break;
     }
-}
-
-
-auto Lexer::lex() -> void {
-    scanToken();
-}
-
-auto Token::toString() const -> std::string {
-    // TODO: implement remaining tokens
-    switch (type) {
-    case TokenType::LParen:
-        return "(";
-    case TokenType::RParen:
-        return ")";
-    case TokenType::LBrace:
-        return "{";
-    case TokenType::RBrace:
-        return "}";
-    case TokenType::LBracket:
-        return "[";
-    case TokenType::RBracket:
-        return "]";
-    case TokenType::Comma:
-        return ",";
-    case TokenType::Dot:
-         return ".";
-    case TokenType::Minus:
-        return "-";
-    case TokenType::Plus:
-        return "+";
-    case TokenType::Semicolon:
-        return ";";
-    case TokenType::Slash:
-        return "/";
-    case TokenType::Star:
-        return "*";
-    case TokenType::Let:
-        return "LET";
-    case TokenType::Var:
-        return "VAR";
-    case TokenType::Const:
-        return "CONST";
-    case TokenType::Function:
-        return "FUNCTION";
-    case TokenType::Return:
-        return "RETURN";
-    case TokenType::Break:
-        return "BREAK";
-    case TokenType::Continue:
-        return "CONTINUE";
-    case TokenType::Throw:
-        return "THROW";
-    case TokenType::If:
-        return "IF";
-    case TokenType::Else:
-        return "ELSE";
-    case TokenType::Switch:
-        return "SWITCH";
-    case TokenType::Try:
-        return "TRY";
-    case TokenType::Catch:
-        return "CATCH";
-    case TokenType::Do:
-        return "DO";
-    case TokenType::While:
-        return "WHILE";
-    case TokenType::For:
-        return "FOR";
-    case TokenType::In:
-        return "IN";
-    case TokenType::Of:
-        return "Of";
-    case TokenType::True:
-        return "TRUE";
-    case TokenType::False:
-        return "FALSE";
+    case '=': {
+        if (match('=')) {
+            addToken(TokenType::EqualEqual);
+            break;
+        }
+        addToken(TokenType::Equal);
+        break;
+    }
+    case '<': {
+        if (match('=')) {
+            addToken(TokenType::LessEqual);
+            break;
+        }
+        addToken(TokenType::Less);
+        break;
+    }
+    case '>': {
+        if (match('=')) {
+            addToken(TokenType::GreaterEqual);
+            break;
+        }
+        addToken(TokenType::Greater);
+        break;
+    }
+    case ' ':
+    case '\r':
+    case '\t':
+        break;
     default:
-        return "UNKNOWN TOKEN";
+        if (isAlpha(nextChar)) {
+            // Read an alphanumeric string, includes underscores.
+            scanIdentifier();
+            break;
+        } else if (isDigit(nextChar)) {
+        }
+
+        printf("Unexpected token");
     }
 }
+
+auto Lexer::scanIdentifier() -> void {
+    while (isAlpha(peek())) {
+        advance();
+    }
+    addToken(TokenType::Identifier);
+}
+
+// Skip whitespace.
+//auto Lexer::skipWhitespace() -> void {
+//    for (;;) {
+//        char nextChar = peek();
+//        switch (nextChar) {
+//        case ' ':
+//        case '\r':
+//        case '\t':
+//            advance();
+//            break;
+//        case '\n':
+//            line++;
+//            advance();
+//            break;
+//        }
+//    }
+//}
+
+// Match if the next token is the one we expect.
+auto Lexer::match(char expected) -> bool {
+    if (isAtEnd()) {
+        return false;
+    }
+    if (source.at(current) != expected) {
+        return false;
+    }
+    current++;
+    return true;
+}
+
+// Peek the current character.
+auto Lexer::peek() -> char {
+    if (isAtEnd()) {
+        return '\0';
+    }
+    return source.at(current);
+}
+
+// Check if we reached EOF.
+auto Lexer::isAtEnd() -> bool { return current >= source.length(); }
+
+// Process source code and build a list of processed tokens.
+auto Lexer::lex() -> void { scanToken(); }
+
+// Check if character is alphabet or underscore.
+auto isAlpha(char chr) -> bool {
+    return (chr >= 'a' && chr <= 'z') || (chr >= 'A' && chr <= 'Z') ||
+           (chr == '_');
+}
+
+// Check if character is digit.
+auto isDigit(char chr) -> bool { return (chr >= '0' && chr <= '9'); }
 
 } // namespace minijsc

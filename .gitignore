@@ -48,7 +48,7 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 build/
-.ccache/
+.cache/
 
 ### CMake Patch ###
 # External projects
