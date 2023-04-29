@@ -83,6 +83,12 @@ auto Token::toString() const -> std::string {
         return "TRUE";
     case TokenType::False:
         return "FALSE";
+    case TokenType::Identifier:
+        return "IDENTIFIER(" + lexeme + ")";
+    case TokenType::Numeric:
+        return "NUMERIC(" + lexeme + ")";
+    case TokenType::Eof:
+        return "EOF";
     default:
         return "UNKNOWN TOKEN";
     }

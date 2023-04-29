@@ -4,6 +4,7 @@
 #include "Token.h"
 
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -13,6 +14,23 @@ namespace minijsc {
 auto isAlpha(char chr) -> bool;
 // Check if character is digit.
 auto isDigit(char chr) -> bool;
+// Check if charcter is alphanumeric.
+auto isAlphaNumeric(char chr) -> bool;
+
+// Map of keywords.
+static std::unordered_map<std::string, TokenType> keywords = {
+    {"let", TokenType::Let},     {"var", TokenType::Var},
+    {"const", TokenType::Const}, {"return", TokenType::Return},
+    {"break", TokenType::Break}, {"continue", TokenType::Continue},
+    {"throw", TokenType::Throw}, {"if", TokenType::If},
+    {"else", TokenType::Else},   {"switch", TokenType::Switch},
+    {"try", TokenType::Try},     {"catch", TokenType::Catch},
+    {"do", TokenType::Do},       {"while", TokenType::While},
+    {"for", TokenType::For},     {"in", TokenType::In},
+    {"of", TokenType::Of},       {"true", TokenType::True},
+    {"false", TokenType::False},
+
+};
 
 // Lexer class implements a lexical analysis module, it consumes text (source)
 // and transforms it to a list of tokens.
@@ -36,16 +54,26 @@ class Lexer {
     auto advance() -> char;
     // Add a token to the list (for single lexeme tokens).
     auto addToken(TokenType typ) -> void;
+    // Add a token with a literal value.
+    auto addToken(TokenType typ, std::string literal);
+    // Add a token with a numeric value.
+    auto addToken(TokenType typ, double value);
     // Check if we reached the end of file.
     auto isAtEnd() -> bool;
     // Match checks if the next token matches the argument.
     auto match(char expected) -> bool;
     // Scan identifiers which are alphanumeric character sequence (string).
     auto scanIdentifier() -> void;
+    // Scan numeric literals.
+    auto scanNumeric() -> void;
+    // Scan literal strings.
+    auto scanString() -> void;
     // Skip whitespace, skips all kinds of whitespace.
     auto skipWhitespace() -> void;
     // Peek returns the current character.
     auto peek() -> char;
+    // Peek returns the next character.
+    auto peekNext() -> char;
 
     private:
     // Class members declarations

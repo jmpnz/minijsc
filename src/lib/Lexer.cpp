@@ -4,8 +4,10 @@
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace minijsc {
@@ -15,9 +17,19 @@ auto Lexer::advance() -> char { return source.at(current++); }
 
 // Append the token to the vector of tokens.
 auto Lexer::addToken(TokenType typ) -> void {
-    auto lexeme = source.substr(start, current);
-    auto tok    = Token(typ, lexeme, "");
     tokens.emplace_back(typ, "", "");
+}
+
+// Append the token with its literal value.
+auto Lexer::addToken(TokenType typ, std::string literal) {
+    auto text = source.substr(start, current);
+    tokens.emplace_back(typ, text, std::move(literal));
+}
+
+// Append the token with its numeric value.
+auto Lexer::addToken(TokenType typ, double /*value*/) {
+    auto text = source.substr(start, current);
+    tokens.emplace_back(typ, text, text);
 }
 
 auto Lexer::scanTokens() -> std::vector<Token> {
@@ -105,6 +117,9 @@ auto Lexer::scanToken() -> void {
         addToken(TokenType::Greater);
         break;
     }
+    case '"':
+        scanString();
+        break;
     case ' ':
     case '\r':
     case '\t':
@@ -113,38 +128,65 @@ auto Lexer::scanToken() -> void {
         if (isAlpha(nextChar)) {
             // Read an alphanumeric string, includes underscores.
             scanIdentifier();
-            break;
         } else if (isDigit(nextChar)) {
+            scanNumeric();
+        } else {
+            printf("Unexpected token");
         }
-
-        printf("Unexpected token");
     }
 }
 
+// Scan an identifier.
 auto Lexer::scanIdentifier() -> void {
-    while (isAlpha(peek())) {
+    while (isAlphaNumeric(peek())) {
         advance();
     }
-    addToken(TokenType::Identifier);
+    auto text = source.substr(start, current);
+    auto iter = keywords.find(text);
+    if (iter == keywords.end()) {
+        auto typ = TokenType::Identifier;
+        addToken(typ, text);
+        return;
+    }
+    TokenType typ = iter->second;
+    addToken(typ, text);
 }
 
-// Skip whitespace.
-//auto Lexer::skipWhitespace() -> void {
-//    for (;;) {
-//        char nextChar = peek();
-//        switch (nextChar) {
-//        case ' ':
-//        case '\r':
-//        case '\t':
-//            advance();
-//            break;
-//        case '\n':
-//            line++;
-//            advance();
-//            break;
-//        }
-//    }
-//}
+// Scan a numeric.
+auto Lexer::scanNumeric() -> void {
+    while (isDigit(peek())) {
+        advance();
+    }
+
+    if (peek() == '.' && isDigit(peekNext())) {
+        advance();
+    }
+
+    while (isDigit(peek())) {
+        advance();
+    }
+    auto value = std::atof(source.substr(start, current).c_str());
+    addToken(TokenType::Numeric, value);
+}
+
+// Scan a literal string.
+auto Lexer::scanString() -> void {
+    while (peek() != '"' && !isAtEnd()) {
+        if (peek() == '\n') {
+            line++;
+        }
+        advance();
+    }
+    if (isAtEnd()) {
+        std::cout << "Unterminated string\n";
+        return;
+    }
+    advance();
+
+    // Build literal.
+    auto value = source.substr(start + 1, current - 1);
+    addToken(TokenType::String, value);
+}
 
 // Match if the next token is the one we expect.
 auto Lexer::match(char expected) -> bool {
@@ -166,6 +208,14 @@ auto Lexer::peek() -> char {
     return source.at(current);
 }
 
+// Peek the next character.
+auto Lexer::peekNext() -> char {
+    if (current + 1 >= source.length()) {
+        return '\0';
+    }
+    return source.at(current + 1);
+}
+
 // Check if we reached EOF.
 auto Lexer::isAtEnd() -> bool { return current >= source.length(); }
 
@@ -180,5 +230,8 @@ auto isAlpha(char chr) -> bool {
 
 // Check if character is digit.
 auto isDigit(char chr) -> bool { return (chr >= '0' && chr <= '9'); }
+
+// Check if character is alphanumeric.
+auto isAlphaNumeric(char chr) -> bool { return (isAlpha(chr) || isDigit(chr)); }
 
 } // namespace minijsc

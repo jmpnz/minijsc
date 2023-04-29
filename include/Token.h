@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include <string>
+#include <variant>
 
 namespace minijsc {
 // JavaScript token types.
@@ -93,7 +94,7 @@ class Token {
     std::string lexeme;
     // Literal is the literal value associated with some token types
     // such as numeric values, strings or identifiers.
-    std::string literal;
+    std::variant<double, std::string> literal;
 };
 
 }; // namespace minijsc
