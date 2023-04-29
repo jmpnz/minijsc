@@ -110,7 +110,7 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
 }
 
 TEST_CASE("testing the lexing of statements and expressions") {
-    SUBCASE("var a = 3.14 + 7.86;") {
+    SUBCASE("statement to assign an expression to a variable") {
         auto source = "var a = 3.14 + 7.86;";
         auto lexer  = minijsc::Lexer(source);
         auto tokens = lexer.scanTokens();
@@ -126,7 +126,7 @@ TEST_CASE("testing the lexing of statements and expressions") {
             CHECK(tokens[i].GetType() == expected[i]);
         }
     }
-    SUBCASE("let adder = function(a,b) { return a + b};") {
+    SUBCASE("statement to declare a function to add two numbers") {
         auto source = "let adder = function(a,b) { return a + b};";
         auto lexer  = minijsc::Lexer(source);
         auto tokens = lexer.scanTokens();
@@ -140,6 +140,84 @@ TEST_CASE("testing the lexing of statements and expressions") {
             minijsc::TokenType::Return, minijsc::TokenType::Identifier,
             minijsc::TokenType::Plus,   minijsc::TokenType::Identifier,
             minijsc::TokenType::RBrace, minijsc::TokenType::Semicolon,
+            minijsc::TokenType::Eof,
+        };
+
+        for (size_t i = 0; i < tokens.size(); i++) {
+            CHECK(tokens[i].GetType() == expected[i]);
+        }
+    }
+    SUBCASE("statement to declare a function to sum elements of an array") {
+        auto source = R"(
+        let sumArray = function(arr) {
+            let sum = 0;
+            for (i = 0;i < arr.len;i++) {
+                sum += arr[i];
+            }
+            return sum;
+        )";
+        auto lexer  = minijsc::Lexer(source);
+        auto tokens = lexer.scanTokens();
+
+        std::vector<minijsc::TokenType> expected = {
+            minijsc::TokenType::Let,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Function,
+            minijsc::TokenType::LParen,     minijsc::TokenType::Identifier,
+            minijsc::TokenType::RParen,     minijsc::TokenType::LBrace,
+            minijsc::TokenType::Let,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Numeric,
+            minijsc::TokenType::Semicolon,  minijsc::TokenType::For,
+            minijsc::TokenType::LParen,     minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Numeric,
+            minijsc::TokenType::Semicolon,  minijsc::TokenType::Identifier,
+            minijsc::TokenType::Less,       minijsc::TokenType::Identifier,
+            minijsc::TokenType::Dot,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::Semicolon,  minijsc::TokenType::Identifier,
+            minijsc::TokenType::Plus,       minijsc::TokenType::Plus,
+            minijsc::TokenType::RParen,     minijsc::TokenType::LBrace,
+            minijsc::TokenType::Identifier, minijsc::TokenType::Plus,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Identifier,
+            minijsc::TokenType::LBracket,   minijsc::TokenType::Identifier,
+            minijsc::TokenType::RBracket,   minijsc::TokenType::Semicolon,
+            minijsc::TokenType::RBrace,     minijsc::TokenType::Return,
+            minijsc::TokenType::Identifier, minijsc::TokenType::Semicolon,
+            minijsc::TokenType::Eof,
+        };
+
+        for (size_t i = 0; i < tokens.size(); i++) {
+            CHECK(tokens[i].GetType() == expected[i]);
+        }
+    }
+    SUBCASE("statement to declare a function to sum an array (while)") {
+        auto source = R"(
+        let sumArray = function(arr) {
+            let sum = 0;
+            while(i < arr.len) {
+                sum += arr[i];
+            }
+            return sum;
+        )";
+        auto lexer  = minijsc::Lexer(source);
+        auto tokens = lexer.scanTokens();
+
+        std::vector<minijsc::TokenType> expected = {
+            minijsc::TokenType::Let,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Function,
+            minijsc::TokenType::LParen,     minijsc::TokenType::Identifier,
+            minijsc::TokenType::RParen,     minijsc::TokenType::LBrace,
+            minijsc::TokenType::Let,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Numeric,
+            minijsc::TokenType::Semicolon,  minijsc::TokenType::While,
+            minijsc::TokenType::LParen,     minijsc::TokenType::Identifier,
+            minijsc::TokenType::Less,       minijsc::TokenType::Identifier,
+            minijsc::TokenType::Dot,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::RParen,     minijsc::TokenType::LBrace,
+            minijsc::TokenType::Identifier, minijsc::TokenType::Plus,
+            minijsc::TokenType::Equal,      minijsc::TokenType::Identifier,
+            minijsc::TokenType::LBracket,   minijsc::TokenType::Identifier,
+            minijsc::TokenType::RBracket,   minijsc::TokenType::Semicolon,
+            minijsc::TokenType::RBrace,     minijsc::TokenType::Return,
+            minijsc::TokenType::Identifier, minijsc::TokenType::Semicolon,
             minijsc::TokenType::Eof,
         };
 
