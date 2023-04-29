@@ -27,9 +27,9 @@ auto Lexer::addToken(TokenType typ, std::string literal) {
 }
 
 // Append the token with its numeric value.
-auto Lexer::addToken(TokenType typ, double /*value*/) {
+auto Lexer::addToken(TokenType typ, double value) {
     auto text = source.substr(start, current);
-    tokens.emplace_back(typ, text, text);
+    tokens.emplace_back(typ, text, value);
 }
 
 auto Lexer::scanTokens() -> std::vector<Token> {
@@ -144,8 +144,7 @@ auto Lexer::scanIdentifier() -> void {
     auto text = source.substr(start, current);
     auto iter = keywords.find(text);
     if (iter == keywords.end()) {
-        auto typ = TokenType::Identifier;
-        addToken(typ, text);
+        addToken(TokenType::Identifier, text);
         return;
     }
     TokenType typ = iter->second;

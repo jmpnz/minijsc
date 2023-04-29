@@ -2,6 +2,7 @@
 #define TOKEN_H
 
 #include <string>
+#include <utility>
 #include <variant>
 
 namespace minijsc {
@@ -78,8 +79,14 @@ enum class TokenType {
 class Token {
     public:
     // Default constructor
-    Token(TokenType typ, std::string lexeme, std::string literal) //NOLINT
-        : type(typ), lexeme(lexeme), literal(literal) {}          //NOLINT
+    Token(TokenType typ, std::string lexeme, std::string literal)   //NOLINT
+        : type(typ), lexeme(std::move(lexeme)), literal(literal) {} //NOLINT
+
+    //
+
+    Token(TokenType typ, std::string lexeme,
+          double literal)                                           //NOLINT
+        : type(typ), lexeme(std::move(lexeme)), literal(literal) {} //NOLINT
 
     // Return a textual representation of the token.
     [[nodiscard]] auto toString() const -> std::string;

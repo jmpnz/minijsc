@@ -90,4 +90,20 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
             CHECK(tokens[i].GetType() == expected[i]);
         }
     }
+    SUBCASE("const a = 3.14 >= 7.20;") {
+        auto source = "const a = 3.14 >= 7.20;";
+        auto lexer  = minijsc::Lexer(source);
+        auto tokens = lexer.scanTokens();
+
+        std::vector<minijsc::TokenType> expected = {
+            minijsc::TokenType::Const,        minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,        minijsc::TokenType::Numeric,
+            minijsc::TokenType::GreaterEqual, minijsc::TokenType::Numeric,
+            minijsc::TokenType::Semicolon,    minijsc::TokenType::Eof,
+        };
+
+        for (size_t i = 0; i < tokens.size(); i++) {
+            CHECK(tokens[i].GetType() == expected[i]);
+        }
+    }
 }

@@ -84,9 +84,9 @@ auto Token::toString() const -> std::string {
     case TokenType::False:
         return "FALSE";
     case TokenType::Identifier:
-        return "IDENTIFIER(" + lexeme + ")";
+        return "IDENTIFIER(" + std::get<std::string>(literal) + ")";
     case TokenType::Numeric:
-        return "NUMERIC(" + lexeme + ")";
+        return "NUMERIC(" + std::to_string(std::get<double>(literal)) + ")";
     case TokenType::Eof:
         return "EOF";
     default:
