@@ -1,15 +1,33 @@
-#include <algorithm>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "Lexer.h"
 #include "Token.h"
 #include "doctest.h"
 
+#include <algorithm>
 #include <cstdio>
+#include <string>
+#include <vector>
 
-TEST_CASE("check tests actually work") {
-    auto var = 5;
-    CHECK(var == 5);
+TEST_CASE("check that all JavaScript keywords are handled") {
+    std::vector<std::string> keywords{
+        "break", "case", "catch", "class", "const", "continue",
+        // "debugger",
+        "default", "delete", "do", "else", "export", "extends", "false",
+        // "finally",
+        "for", "function", "if", "import", "in", "instanceOf", "let", "new",
+        "null", "return", "super", "switch", "this", "throw", "true", "try",
+        "typeOf", "var",
+        // "void",
+        "while",
+        // "with",
+    };
+
+    for (const auto& keyword : keywords) {
+        auto iter = minijsc::Keywords.find(keyword);
+        INFO("Checking keyword: ", keyword);
+        CHECK(iter != minijsc::Keywords.end());
+    }
 }
 
 TEST_CASE("testing the lexing of single character tokens") {

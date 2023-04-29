@@ -2,8 +2,8 @@
 
 namespace minijsc {
 
+// Return a string representation of the token based on its type.
 auto Token::toString() const -> std::string {
-    // TODO: implement remaining tokens
     switch (type) {
     case TokenType::LParen:
         return "(";
@@ -17,6 +17,10 @@ auto Token::toString() const -> std::string {
         return "[";
     case TokenType::RBracket:
         return "]";
+    case TokenType::Bang:
+        return "!";
+    case TokenType::BangEqual:
+        return "!=";
     case TokenType::Comma:
         return ",";
     case TokenType::Dot:
@@ -51,6 +55,24 @@ auto Token::toString() const -> std::string {
         return "CONST";
     case TokenType::Function:
         return "FUNCTION";
+    case TokenType::Class:
+        return "CLASS";
+    case TokenType::This:
+        return "THIS";
+    case TokenType::Extends:
+        return "EXTENDS";
+    case TokenType::Super:
+        return "SUPER";
+    case TokenType::Default:
+        return "DEFAULT";
+    case TokenType::TypeOf:
+        return "TYPEOF";
+    case TokenType::InstanceOf:
+        return "INSTANCEOF";
+    case TokenType::Delete:
+        return "DELETE";
+    case TokenType::New:
+        return "NEW";
     case TokenType::Return:
         return "RETURN";
     case TokenType::Break:
@@ -65,6 +87,8 @@ auto Token::toString() const -> std::string {
         return "ELSE";
     case TokenType::Switch:
         return "SWITCH";
+    case TokenType::Case:
+        return "CASE";
     case TokenType::Try:
         return "TRY";
     case TokenType::Catch:
@@ -83,15 +107,23 @@ auto Token::toString() const -> std::string {
         return "TRUE";
     case TokenType::False:
         return "FALSE";
+    case TokenType::Null:
+        return "NULL";
+    case TokenType::Import:
+        return "IMPORT";
+    case TokenType::Export:
+        return "EXPORT";
+    case TokenType::String:
+        return "STRING(" + std::get<std::string>(literal) + ")";
     case TokenType::Identifier:
         return "IDENTIFIER(" + std::get<std::string>(literal) + ")";
     case TokenType::Numeric:
         return "NUMERIC(" + std::to_string(std::get<double>(literal)) + ")";
     case TokenType::Eof:
         return "EOF";
-    default:
-        return "UNKNOWN TOKEN";
     }
+
+    return "UNKNOWN TOKEN";
 }
 
 }; // namespace minijsc

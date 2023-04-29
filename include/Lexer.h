@@ -18,18 +18,30 @@ auto isDigit(char chr) -> bool;
 auto isAlphaNumeric(char chr) -> bool;
 
 // Map of keywords.
-static std::unordered_map<std::string, TokenType> keywords = {
+static std::unordered_map<std::string, TokenType> Keywords = {
     {"let", TokenType::Let},
     {"var", TokenType::Var},
     {"const", TokenType::Const},
-    {"return", TokenType::Return},
-    {"break", TokenType::Break},
-    {"continue", TokenType::Continue},
     {"function", TokenType::Function},
-    {"throw", TokenType::Throw},
+    {"class", TokenType::Class},
+    {"super", TokenType::Super},
+    {"this", TokenType::This},
+    {"extends", TokenType::Extends},
+    {"delete", TokenType::Delete},
+    {"instanceOf", TokenType::InstanceOf},
+    {"typeOf", TokenType::TypeOf},
+    {"new", TokenType::New},
+    {"import", TokenType::Import},
+    {"export", TokenType::Export},
+    {"default", TokenType::Default},
+    {"return", TokenType::Return},
+    {"continue", TokenType::Continue},
+    {"break", TokenType::Break},
     {"if", TokenType::If},
     {"else", TokenType::Else},
     {"switch", TokenType::Switch},
+    {"case", TokenType::Case},
+    {"throw", TokenType::Throw},
     {"try", TokenType::Try},
     {"catch", TokenType::Catch},
     {"do", TokenType::Do},
@@ -39,6 +51,7 @@ static std::unordered_map<std::string, TokenType> keywords = {
     {"of", TokenType::Of},
     {"true", TokenType::True},
     {"false", TokenType::False},
+    {"null", TokenType::Null},
 };
 
 // Lexer class implements a lexical analysis module, it consumes text (source)

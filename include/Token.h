@@ -39,6 +39,11 @@ enum class TokenType {
     Numeric,
     String,
 
+    // Notable keywords
+    Import,
+    Export,
+    Default,
+
     // Variable declarations
     Var,
     Let,
@@ -46,6 +51,14 @@ enum class TokenType {
 
     // Functions and classes
     Function,
+    Class,
+    Super,
+    Extends,
+    Delete,
+    InstanceOf,
+    TypeOf,
+    New,
+    This,
 
     // Control flow
     Return,
@@ -55,6 +68,7 @@ enum class TokenType {
     If,
     Else,
     Switch,
+    Case,
     Try,
     Catch,
 
@@ -68,6 +82,7 @@ enum class TokenType {
     // Literal booleans
     True,
     False,
+    Null,
 
     // End of file.
     Eof,
