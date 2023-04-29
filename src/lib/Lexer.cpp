@@ -13,7 +13,11 @@
 namespace minijsc {
 
 // Advance to the next character.
-auto Lexer::advance() -> char { return source.at(current++); }
+auto Lexer::advance() -> char {
+    auto curr = current;
+    current++;
+    return source.at(curr);
+}
 
 // Append the token to the vector of tokens.
 auto Lexer::addToken(TokenType typ) -> void {
@@ -22,13 +26,15 @@ auto Lexer::addToken(TokenType typ) -> void {
 
 // Append the token with its literal value.
 auto Lexer::addToken(TokenType typ, std::string literal) {
-    auto text = source.substr(start, current);
-    tokens.emplace_back(typ, text, std::move(literal));
+    auto len  = current - start;
+    auto text = source.substr(start, len);
+    tokens.emplace_back(typ, text, literal);
 }
 
 // Append the token with its numeric value.
 auto Lexer::addToken(TokenType typ, double value) {
-    auto text = source.substr(start, current);
+    auto len  = current - start;
+    auto text = source.substr(start, len);
     tokens.emplace_back(typ, text, value);
 }
 
@@ -117,22 +123,26 @@ auto Lexer::scanToken() -> void {
         addToken(TokenType::Greater);
         break;
     }
-    case '"':
-        scanString();
-        break;
     case ' ':
     case '\r':
     case '\t':
         break;
-    default:
-        if (isAlpha(nextChar)) {
-            // Read an alphanumeric string, includes underscores.
-            scanIdentifier();
-        } else if (isDigit(nextChar)) {
+    case '\n':
+        line++;
+        break;
+    case '"':
+        scanString();
+        break;
+    default: {
+        if (isDigit(nextChar)) {
             scanNumeric();
+        } else if (isAlpha(nextChar)) {
+            scanIdentifier();
         } else {
             printf("Unexpected token");
         }
+        break;
+    }
     }
 }
 
@@ -141,7 +151,8 @@ auto Lexer::scanIdentifier() -> void {
     while (isAlphaNumeric(peek())) {
         advance();
     }
-    auto text = source.substr(start, current);
+    auto len  = current - start;
+    auto text = source.substr(start, len);
     auto iter = keywords.find(text);
     if (iter == keywords.end()) {
         addToken(TokenType::Identifier, text);
@@ -164,7 +175,9 @@ auto Lexer::scanNumeric() -> void {
     while (isDigit(peek())) {
         advance();
     }
-    auto value = std::atof(source.substr(start, current).c_str());
+
+    auto len   = current - start;
+    auto value = std::atof(source.substr(start, len).c_str());
     addToken(TokenType::Numeric, value);
 }
 
@@ -183,7 +196,8 @@ auto Lexer::scanString() -> void {
     advance();
 
     // Build literal.
-    auto value = source.substr(start + 1, current - 1);
+    auto len   = (current - 1) - (start + 1);
+    auto value = source.substr(start + 1, len);
     addToken(TokenType::String, value);
 }
 

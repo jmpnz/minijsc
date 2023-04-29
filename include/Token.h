@@ -78,12 +78,11 @@ enum class TokenType {
 // of the token and a literal (for numerics, strings and identifiers).
 class Token {
     public:
-    // Default constructor
+    // Default constructor.
     Token(TokenType typ, std::string lexeme, std::string literal)   //NOLINT
         : type(typ), lexeme(std::move(lexeme)), literal(literal) {} //NOLINT
 
-    //
-
+    // Default constructo for numeric values.
     Token(TokenType typ, std::string lexeme,
           double literal)                                           //NOLINT
         : type(typ), lexeme(std::move(lexeme)), literal(literal) {} //NOLINT

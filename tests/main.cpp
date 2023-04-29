@@ -1,3 +1,4 @@
+#include <algorithm>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
 #include "Lexer.h"
@@ -100,6 +101,46 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
             minijsc::TokenType::Equal,        minijsc::TokenType::Numeric,
             minijsc::TokenType::GreaterEqual, minijsc::TokenType::Numeric,
             minijsc::TokenType::Semicolon,    minijsc::TokenType::Eof,
+        };
+
+        for (size_t i = 0; i < tokens.size(); i++) {
+            CHECK(tokens[i].GetType() == expected[i]);
+        }
+    }
+}
+
+TEST_CASE("testing the lexing of statements and expressions") {
+    SUBCASE("var a = 3.14 + 7.86;") {
+        auto source = "var a = 3.14 + 7.86;";
+        auto lexer  = minijsc::Lexer(source);
+        auto tokens = lexer.scanTokens();
+
+        std::vector<minijsc::TokenType> expected = {
+            minijsc::TokenType::Var,       minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,     minijsc::TokenType::Numeric,
+            minijsc::TokenType::Plus,      minijsc::TokenType::Numeric,
+            minijsc::TokenType::Semicolon, minijsc::TokenType::Eof,
+        };
+
+        for (size_t i = 0; i < tokens.size(); i++) {
+            CHECK(tokens[i].GetType() == expected[i]);
+        }
+    }
+    SUBCASE("let adder = function(a,b) { return a + b};") {
+        auto source = "let adder = function(a,b) { return a + b};";
+        auto lexer  = minijsc::Lexer(source);
+        auto tokens = lexer.scanTokens();
+
+        std::vector<minijsc::TokenType> expected = {
+            minijsc::TokenType::Let,    minijsc::TokenType::Identifier,
+            minijsc::TokenType::Equal,  minijsc::TokenType::Function,
+            minijsc::TokenType::LParen, minijsc::TokenType::Identifier,
+            minijsc::TokenType::Comma,  minijsc::TokenType::Identifier,
+            minijsc::TokenType::RParen, minijsc::TokenType::LBrace,
+            minijsc::TokenType::Return, minijsc::TokenType::Identifier,
+            minijsc::TokenType::Plus,   minijsc::TokenType::Identifier,
+            minijsc::TokenType::RBrace, minijsc::TokenType::Semicolon,
+            minijsc::TokenType::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {

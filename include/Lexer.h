@@ -19,17 +19,26 @@ auto isAlphaNumeric(char chr) -> bool;
 
 // Map of keywords.
 static std::unordered_map<std::string, TokenType> keywords = {
-    {"let", TokenType::Let},     {"var", TokenType::Var},
-    {"const", TokenType::Const}, {"return", TokenType::Return},
-    {"break", TokenType::Break}, {"continue", TokenType::Continue},
-    {"throw", TokenType::Throw}, {"if", TokenType::If},
-    {"else", TokenType::Else},   {"switch", TokenType::Switch},
-    {"try", TokenType::Try},     {"catch", TokenType::Catch},
-    {"do", TokenType::Do},       {"while", TokenType::While},
-    {"for", TokenType::For},     {"in", TokenType::In},
-    {"of", TokenType::Of},       {"true", TokenType::True},
+    {"let", TokenType::Let},
+    {"var", TokenType::Var},
+    {"const", TokenType::Const},
+    {"return", TokenType::Return},
+    {"break", TokenType::Break},
+    {"continue", TokenType::Continue},
+    {"function", TokenType::Function},
+    {"throw", TokenType::Throw},
+    {"if", TokenType::If},
+    {"else", TokenType::Else},
+    {"switch", TokenType::Switch},
+    {"try", TokenType::Try},
+    {"catch", TokenType::Catch},
+    {"do", TokenType::Do},
+    {"while", TokenType::While},
+    {"for", TokenType::For},
+    {"in", TokenType::In},
+    {"of", TokenType::Of},
+    {"true", TokenType::True},
     {"false", TokenType::False},
-
 };
 
 // Lexer class implements a lexical analysis module, it consumes text (source)
