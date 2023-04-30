@@ -20,7 +20,7 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/src/bin")
 find_package(doctest REQUIRED)
 
 # Make test executable
-add_executable(tests tests/main.cpp src/lib/JSLexer.cpp src/lib/Token.cpp)
+add_executable(tests tests/main.cpp src/lib/JSLexer.cpp src/lib/JSToken.cpp)
 target_compile_features(tests PRIVATE cxx_std_20)
 target_link_libraries(tests PRIVATE doctest::doctest)# build the main minijsc executable
 

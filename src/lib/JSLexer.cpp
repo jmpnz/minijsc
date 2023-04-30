@@ -1,6 +1,6 @@
 #include "JSLexer.h"
+#include "JSToken.h"
 #include "JSValue.h"
-#include "Token.h"
 
 #include <cctype>
 #include <cstdint>
@@ -21,31 +21,31 @@ auto JSLexer::advance() -> char {
 }
 
 // Append a token without a lexeme to the vector of tokens.
-auto JSLexer::addToken(TokenKind typ) -> void {
+auto JSLexer::addToken(JSTokenKind typ) -> void {
     tokens.emplace_back(typ, "", "");
 }
 
 // Append the token with its literal value (String).
-auto JSLexer::addToken(TokenKind typ, const std::string& literal) {
+auto JSLexer::addToken(JSTokenKind typ, const std::string& literal) {
     auto len  = current - start;
     auto text = source.substr(start, len);
     tokens.emplace_back(typ, text, literal);
 }
 
 // Append the token with its literal value (Numeric).
-auto JSLexer::addToken(TokenKind typ, double literal) {
+auto JSLexer::addToken(JSTokenKind typ, double literal) {
     auto len  = current - start;
     auto text = source.substr(start, len);
     tokens.emplace_back(typ, text, literal);
 }
 
 // Core lexer scanning function.
-auto JSLexer::scanTokens() -> std::vector<Token> {
+auto JSLexer::scanTokens() -> std::vector<JSToken> {
     while (!isAtEnd()) {
         start = current;
         scanToken();
     }
-    tokens.emplace_back(TokenKind::Eof, "", "");
+    tokens.emplace_back(JSTokenKind::Eof, "", "");
     return tokens;
 }
 
@@ -56,74 +56,74 @@ auto JSLexer::scanToken() -> void {
     // Match the current char against supported lexemes.
     switch (nextChar) {
     case '(':
-        addToken(TokenKind::LParen);
+        addToken(JSTokenKind::LParen);
         break;
     case ')':
-        addToken(TokenKind::RParen);
+        addToken(JSTokenKind::RParen);
         break;
     case '{':
-        addToken(TokenKind::LBrace);
+        addToken(JSTokenKind::LBrace);
         break;
     case '}':
-        addToken(TokenKind::RBrace);
+        addToken(JSTokenKind::RBrace);
         break;
     case '[':
-        addToken(TokenKind::LBracket);
+        addToken(JSTokenKind::LBracket);
         break;
     case ']':
-        addToken(TokenKind::RBracket);
+        addToken(JSTokenKind::RBracket);
         break;
     case ',':
-        addToken(TokenKind::Comma);
+        addToken(JSTokenKind::Comma);
         break;
     case '.':
-        addToken(TokenKind::Dot);
+        addToken(JSTokenKind::Dot);
         break;
     case ';':
-        addToken(TokenKind::Semicolon);
+        addToken(JSTokenKind::Semicolon);
         break;
     case '-':
-        addToken(TokenKind::Minus);
+        addToken(JSTokenKind::Minus);
         break;
     case '+':
-        addToken(TokenKind::Plus);
+        addToken(JSTokenKind::Plus);
         break;
     case '*':
-        addToken(TokenKind::Star);
+        addToken(JSTokenKind::Star);
         break;
     case '/':
-        addToken(TokenKind::Slash);
+        addToken(JSTokenKind::Slash);
         break;
     case '!': {
         if (match('=')) {
-            addToken(TokenKind::BangEqual);
+            addToken(JSTokenKind::BangEqual);
             break;
         }
-        addToken(TokenKind::Bang);
+        addToken(JSTokenKind::Bang);
         break;
     }
     case '=': {
         if (match('=')) {
-            addToken(TokenKind::EqualEqual);
+            addToken(JSTokenKind::EqualEqual);
             break;
         }
-        addToken(TokenKind::Equal);
+        addToken(JSTokenKind::Equal);
         break;
     }
     case '<': {
         if (match('=')) {
-            addToken(TokenKind::LessEqual);
+            addToken(JSTokenKind::LessEqual);
             break;
         }
-        addToken(TokenKind::Less);
+        addToken(JSTokenKind::Less);
         break;
     }
     case '>': {
         if (match('=')) {
-            addToken(TokenKind::GreaterEqual);
+            addToken(JSTokenKind::GreaterEqual);
             break;
         }
-        addToken(TokenKind::Greater);
+        addToken(JSTokenKind::Greater);
         break;
     }
     case ' ':
@@ -164,7 +164,7 @@ auto JSLexer::scanIdentifier() -> void {
         return;
     }
     // Lexeme isn't a keyword, must be an identifier.
-    addToken(TokenKind::Identifier, text);
+    addToken(JSTokenKind::Identifier, text);
 }
 
 // Scan a numeric.
@@ -187,7 +187,7 @@ auto JSLexer::scanNumeric() -> void {
     // Extract the numeric lexeme from source and cast it as a double value.
     auto value = std::atof(source.substr(start, len).c_str());
     // Append the numeric token to the tokens vector.
-    addToken(TokenKind::Numeric, value);
+    addToken(JSTokenKind::Numeric, value);
 }
 
 // Scan a literal string.
@@ -212,7 +212,7 @@ auto JSLexer::scanString() -> void {
     // start would point to the starting quote
     auto len   = (current - 1) - (start + 1);
     auto value = source.substr(start + 1, len);
-    addToken(TokenKind::String, value);
+    addToken(JSTokenKind::String, value);
 }
 
 // Match if the current character is the one we expect.

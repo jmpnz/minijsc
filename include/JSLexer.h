@@ -1,7 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#include "Token.h"
+#include "JSToken.h"
 
 #include <string>
 #include <unordered_map>
@@ -18,40 +18,40 @@ auto isDigit(char chr) -> bool;
 auto isAlphaNumeric(char chr) -> bool;
 
 // JavaScript keywords.
-static std::unordered_map<std::string, TokenKind> jsKeywords = {
-    {"let", TokenKind::Let},
-    {"var", TokenKind::Var},
-    {"const", TokenKind::Const},
-    {"function", TokenKind::Function},
-    {"class", TokenKind::Class},
-    {"super", TokenKind::Super},
-    {"this", TokenKind::This},
-    {"extends", TokenKind::Extends},
-    {"delete", TokenKind::Delete},
-    {"instanceof", TokenKind::InstanceOf},
-    {"typeof", TokenKind::TypeOf},
-    {"new", TokenKind::New},
-    {"import", TokenKind::Import},
-    {"export", TokenKind::Export},
-    {"default", TokenKind::Default},
-    {"return", TokenKind::Return},
-    {"continue", TokenKind::Continue},
-    {"break", TokenKind::Break},
-    {"if", TokenKind::If},
-    {"else", TokenKind::Else},
-    {"switch", TokenKind::Switch},
-    {"case", TokenKind::Case},
-    {"throw", TokenKind::Throw},
-    {"try", TokenKind::Try},
-    {"catch", TokenKind::Catch},
-    {"do", TokenKind::Do},
-    {"while", TokenKind::While},
-    {"for", TokenKind::For},
-    {"in", TokenKind::In},
-    {"of", TokenKind::Of},
-    {"true", TokenKind::True},
-    {"false", TokenKind::False},
-    {"null", TokenKind::Null},
+static std::unordered_map<std::string, JSTokenKind> jsKeywords = {
+    {"let", JSTokenKind::Let},
+    {"var", JSTokenKind::Var},
+    {"const", JSTokenKind::Const},
+    {"function", JSTokenKind::Function},
+    {"class", JSTokenKind::Class},
+    {"super", JSTokenKind::Super},
+    {"this", JSTokenKind::This},
+    {"extends", JSTokenKind::Extends},
+    {"delete", JSTokenKind::Delete},
+    {"instanceof", JSTokenKind::InstanceOf},
+    {"typeof", JSTokenKind::TypeOf},
+    {"new", JSTokenKind::New},
+    {"import", JSTokenKind::Import},
+    {"export", JSTokenKind::Export},
+    {"default", JSTokenKind::Default},
+    {"return", JSTokenKind::Return},
+    {"continue", JSTokenKind::Continue},
+    {"break", JSTokenKind::Break},
+    {"if", JSTokenKind::If},
+    {"else", JSTokenKind::Else},
+    {"switch", JSTokenKind::Switch},
+    {"case", JSTokenKind::Case},
+    {"throw", JSTokenKind::Throw},
+    {"try", JSTokenKind::Try},
+    {"catch", JSTokenKind::Catch},
+    {"do", JSTokenKind::Do},
+    {"while", JSTokenKind::While},
+    {"for", JSTokenKind::For},
+    {"in", JSTokenKind::In},
+    {"of", JSTokenKind::Of},
+    {"true", JSTokenKind::True},
+    {"false", JSTokenKind::False},
+    {"null", JSTokenKind::Null},
 };
 
 // Lexer class implements a lexical analysis module, it consumes text (source)
@@ -65,21 +65,21 @@ class JSLexer {
     auto lex() -> void;
 
     // Return the internal vector of tokens.
-    auto getTokens() -> std::vector<Token> { return tokens; }
+    auto getTokens() -> std::vector<JSToken> { return tokens; }
 
     // Scan the source code and populate the the vector of tokens, the function
     // acts as a proxy for `lex`.
-    auto scanTokens() -> std::vector<Token>;
+    auto scanTokens() -> std::vector<JSToken>;
     // Single token lexical pass
     auto scanToken() -> void;
     // Advance the lexer's cursor position.
     auto advance() -> char;
     // Add a token to the list (for single lexeme tokens).
-    auto addToken(TokenKind typ) -> void;
+    auto addToken(JSTokenKind typ) -> void;
     // Add a token with a literal value.
-    auto addToken(TokenKind typ, const std::string& literal);
+    auto addToken(JSTokenKind typ, const std::string& literal);
     // Add a token with a numeric value.
-    auto addToken(TokenKind typ, double literal);
+    auto addToken(JSTokenKind typ, double literal);
     // Check if we reached the end of file.
     auto isAtEnd() -> bool;
     // Match checks if the next token matches the argument.
@@ -105,7 +105,7 @@ class JSLexer {
     // Source code we want to lex as an std::string.
     std::string source;
     // List of processed tokens.
-    std::vector<Token> tokens;
+    std::vector<JSToken> tokens;
     // Line in the file or source code we're processing.
     int line = 0;
 };

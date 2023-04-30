@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "JSLexer.h"
-#include "Token.h"
+#include "JSToken.h"
 
 auto main() -> int {
     std::vector<std::string> const msg{
@@ -14,7 +14,7 @@ auto main() -> int {
     }
     std::cout << std::endl;
     const char* source = "let a = 5 * 3;";
-    auto tok           = minijsc::Token(minijsc::TokenKind::Let, "LET", "");
+    auto tok           = minijsc::JSToken(minijsc::JSTokenKind::Let, "LET", "");
     std::cout << tok.toString() << '\n';
 
     auto lexer = minijsc::JSLexer(source);

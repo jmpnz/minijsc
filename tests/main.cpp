@@ -1,17 +1,19 @@
-#include <optional>
-#include <variant>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-
-#include "JSLexer.h"
-#include "JSValue.h"
-
-#include "Token.h"
 #include "doctest.h"
 
-#include <algorithm>
+#include "JSLexer.h"
+#include "JSToken.h"
+#include "JSValue.h"
+
 #include <cstdio>
+
+#include <algorithm>
+#include <optional>
 #include <string>
+#include <variant>
 #include <vector>
+
+using namespace minijsc;
 
 TEST_CASE("check that all JavaScript keywords are handled") {
     std::vector<std::string> keywords{
@@ -28,23 +30,23 @@ TEST_CASE("check that all JavaScript keywords are handled") {
     };
 
     for (const auto& keyword : keywords) {
-        auto iter = minijsc::jsKeywords.find(keyword);
+        auto iter = jsKeywords.find(keyword);
         INFO("Checking keyword: ", keyword);
-        CHECK(iter != minijsc::jsKeywords.end());
+        CHECK(iter != jsKeywords.end());
     }
 }
 
 TEST_CASE("testing the lexing of single character tokens") {
     auto source = "(){}[] a == b\0";
-    auto lexer  = minijsc::JSLexer(source);
+    auto lexer  = JSLexer(source);
     auto tokens = lexer.scanTokens();
 
-    std::vector<minijsc::TokenKind> expected = {
-        minijsc::TokenKind::LParen,     minijsc::TokenKind::RParen,
-        minijsc::TokenKind::LBrace,     minijsc::TokenKind::RBrace,
-        minijsc::TokenKind::LBracket,   minijsc::TokenKind::RBracket,
-        minijsc::TokenKind::Identifier, minijsc::TokenKind::EqualEqual,
-        minijsc::TokenKind::Identifier, minijsc::TokenKind::Eof,
+    std::vector<JSTokenKind> expected = {
+        JSTokenKind::LParen,     JSTokenKind::RParen,
+        JSTokenKind::LBrace,     JSTokenKind::RBrace,
+        JSTokenKind::LBracket,   JSTokenKind::RBracket,
+        JSTokenKind::Identifier, JSTokenKind::EqualEqual,
+        JSTokenKind::Identifier, JSTokenKind::Eof,
     };
 
     for (size_t i = 0; i < tokens.size(); i++) {
@@ -55,13 +57,12 @@ TEST_CASE("testing the lexing of single character tokens") {
 TEST_CASE("testing the lexing of multicharacter tokens") {
     SUBCASE("var a = 3.14;") {
         auto source = "var a = 3.14;";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Var,       minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,     minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon, minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Var,     JSTokenKind::Identifier, JSTokenKind::Equal,
+            JSTokenKind::Numeric, JSTokenKind::Semicolon,  JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -70,13 +71,12 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
     }
     SUBCASE("let a = 3.14;") {
         auto source = "let a = 3.14;";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Let,       minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,     minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon, minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Let,     JSTokenKind::Identifier, JSTokenKind::Equal,
+            JSTokenKind::Numeric, JSTokenKind::Semicolon,  JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -85,13 +85,12 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
     }
     SUBCASE("const a = 3.14;") {
         auto source = "const a = 3.14;";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Const,     minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,     minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon, minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Const,   JSTokenKind::Identifier, JSTokenKind::Equal,
+            JSTokenKind::Numeric, JSTokenKind::Semicolon,  JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -100,13 +99,12 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
     }
     SUBCASE("var str = \"hello\";") {
         auto source = "var str = \"hello\";";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Var,       minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,     minijsc::TokenKind::String,
-            minijsc::TokenKind::Semicolon, minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Var,    JSTokenKind::Identifier, JSTokenKind::Equal,
+            JSTokenKind::String, JSTokenKind::Semicolon,  JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -115,14 +113,14 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
     }
     SUBCASE("const a = 3.14 >= 7.20;") {
         auto source = "const a = 3.14 >= 7.20;";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Const,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,        minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::GreaterEqual, minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon,    minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Const,        JSTokenKind::Identifier,
+            JSTokenKind::Equal,        JSTokenKind::Numeric,
+            JSTokenKind::GreaterEqual, JSTokenKind::Numeric,
+            JSTokenKind::Semicolon,    JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -134,14 +132,14 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
 TEST_CASE("testing the lexing of statements and expressions") {
     SUBCASE("statement to assign an expression to a variable") {
         auto source = "var a = 3.14 + 7.86;";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Var,       minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,     minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Plus,      minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon, minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Var,       JSTokenKind::Identifier,
+            JSTokenKind::Equal,     JSTokenKind::Numeric,
+            JSTokenKind::Plus,      JSTokenKind::Numeric,
+            JSTokenKind::Semicolon, JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -150,19 +148,19 @@ TEST_CASE("testing the lexing of statements and expressions") {
     }
     SUBCASE("statement to declare a function to add two numbers") {
         auto source = "let adder = function(a,b) { return a + b};";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Let,    minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,  minijsc::TokenKind::Function,
-            minijsc::TokenKind::LParen, minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Comma,  minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RParen, minijsc::TokenKind::LBrace,
-            minijsc::TokenKind::Return, minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Plus,   minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RBrace, minijsc::TokenKind::Semicolon,
-            minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Let,    JSTokenKind::Identifier,
+            JSTokenKind::Equal,  JSTokenKind::Function,
+            JSTokenKind::LParen, JSTokenKind::Identifier,
+            JSTokenKind::Comma,  JSTokenKind::Identifier,
+            JSTokenKind::RParen, JSTokenKind::LBrace,
+            JSTokenKind::Return, JSTokenKind::Identifier,
+            JSTokenKind::Plus,   JSTokenKind::Identifier,
+            JSTokenKind::RBrace, JSTokenKind::Semicolon,
+            JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -178,32 +176,32 @@ TEST_CASE("testing the lexing of statements and expressions") {
             }
             return sum;
         )";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Let,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Function,
-            minijsc::TokenKind::LParen,     minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RParen,     minijsc::TokenKind::LBrace,
-            minijsc::TokenKind::Let,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon,  minijsc::TokenKind::For,
-            minijsc::TokenKind::LParen,     minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon,  minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Less,       minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Dot,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Semicolon,  minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Plus,       minijsc::TokenKind::Plus,
-            minijsc::TokenKind::RParen,     minijsc::TokenKind::LBrace,
-            minijsc::TokenKind::Identifier, minijsc::TokenKind::Plus,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::LBracket,   minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RBracket,   minijsc::TokenKind::Semicolon,
-            minijsc::TokenKind::RBrace,     minijsc::TokenKind::Return,
-            minijsc::TokenKind::Identifier, minijsc::TokenKind::Semicolon,
-            minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Let,        JSTokenKind::Identifier,
+            JSTokenKind::Equal,      JSTokenKind::Function,
+            JSTokenKind::LParen,     JSTokenKind::Identifier,
+            JSTokenKind::RParen,     JSTokenKind::LBrace,
+            JSTokenKind::Let,        JSTokenKind::Identifier,
+            JSTokenKind::Equal,      JSTokenKind::Numeric,
+            JSTokenKind::Semicolon,  JSTokenKind::For,
+            JSTokenKind::LParen,     JSTokenKind::Identifier,
+            JSTokenKind::Equal,      JSTokenKind::Numeric,
+            JSTokenKind::Semicolon,  JSTokenKind::Identifier,
+            JSTokenKind::Less,       JSTokenKind::Identifier,
+            JSTokenKind::Dot,        JSTokenKind::Identifier,
+            JSTokenKind::Semicolon,  JSTokenKind::Identifier,
+            JSTokenKind::Plus,       JSTokenKind::Plus,
+            JSTokenKind::RParen,     JSTokenKind::LBrace,
+            JSTokenKind::Identifier, JSTokenKind::Plus,
+            JSTokenKind::Equal,      JSTokenKind::Identifier,
+            JSTokenKind::LBracket,   JSTokenKind::Identifier,
+            JSTokenKind::RBracket,   JSTokenKind::Semicolon,
+            JSTokenKind::RBrace,     JSTokenKind::Return,
+            JSTokenKind::Identifier, JSTokenKind::Semicolon,
+            JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -219,28 +217,28 @@ TEST_CASE("testing the lexing of statements and expressions") {
             }
             return sum;
         )";
-        auto lexer  = minijsc::JSLexer(source);
+        auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
 
-        std::vector<minijsc::TokenKind> expected = {
-            minijsc::TokenKind::Let,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Function,
-            minijsc::TokenKind::LParen,     minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RParen,     minijsc::TokenKind::LBrace,
-            minijsc::TokenKind::Let,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Numeric,
-            minijsc::TokenKind::Semicolon,  minijsc::TokenKind::While,
-            minijsc::TokenKind::LParen,     minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Less,       minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::Dot,        minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RParen,     minijsc::TokenKind::LBrace,
-            minijsc::TokenKind::Identifier, minijsc::TokenKind::Plus,
-            minijsc::TokenKind::Equal,      minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::LBracket,   minijsc::TokenKind::Identifier,
-            minijsc::TokenKind::RBracket,   minijsc::TokenKind::Semicolon,
-            minijsc::TokenKind::RBrace,     minijsc::TokenKind::Return,
-            minijsc::TokenKind::Identifier, minijsc::TokenKind::Semicolon,
-            minijsc::TokenKind::Eof,
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Let,        JSTokenKind::Identifier,
+            JSTokenKind::Equal,      JSTokenKind::Function,
+            JSTokenKind::LParen,     JSTokenKind::Identifier,
+            JSTokenKind::RParen,     JSTokenKind::LBrace,
+            JSTokenKind::Let,        JSTokenKind::Identifier,
+            JSTokenKind::Equal,      JSTokenKind::Numeric,
+            JSTokenKind::Semicolon,  JSTokenKind::While,
+            JSTokenKind::LParen,     JSTokenKind::Identifier,
+            JSTokenKind::Less,       JSTokenKind::Identifier,
+            JSTokenKind::Dot,        JSTokenKind::Identifier,
+            JSTokenKind::RParen,     JSTokenKind::LBrace,
+            JSTokenKind::Identifier, JSTokenKind::Plus,
+            JSTokenKind::Equal,      JSTokenKind::Identifier,
+            JSTokenKind::LBracket,   JSTokenKind::Identifier,
+            JSTokenKind::RBracket,   JSTokenKind::Semicolon,
+            JSTokenKind::RBrace,     JSTokenKind::Return,
+            JSTokenKind::Identifier, JSTokenKind::Semicolon,
+            JSTokenKind::Eof,
         };
 
         for (size_t i = 0; i < tokens.size(); i++) {
@@ -250,7 +248,7 @@ TEST_CASE("testing the lexing of statements and expressions") {
 }
 
 TEST_CASE("testing the JSBasicValue class") {
-    minijsc::JSBasicValue var(3.14);
+    JSBasicValue var(3.14);
 
     CHECK(var.isNumber() == true);
     CHECK(var.getValue<double>() == 3.14);
@@ -259,6 +257,6 @@ TEST_CASE("testing the JSBasicValue class") {
     CHECK(var.isString() == true);
     CHECK(var.getValue<std::string>() == "hulla hoop");
 
-    minijsc::JSBasicValue undefined;
+    JSBasicValue undefined;
     CHECK(undefined.isUndefined() == true);
 }
