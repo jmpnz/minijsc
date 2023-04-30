@@ -1,14 +1,18 @@
 cmake_minimum_required(VERSION 3.2)
 
-project(minjsc LANGUAGES CXX)
+project(minijsc LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
-# Useful debug options for the default build
-add_compile_options(-g -fno-exceptions)
+# Useful debug for the debug build
+add_compile_options(-g3 -fno-exceptions)
 # lots of warnings and errors.
 add_compile_options(-Wall -Wextra -Werror -pedantic)
-
+# warn about unused things
+add_compile_options(-Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion)
+# headers and third party libraries.
 include_directories("${PROJECT_SOURCE_DIR}/include")
+
+# source code directories.
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/lib")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/bin")
 
@@ -16,14 +20,15 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/src/bin")
 find_package(doctest REQUIRED)
 
 # Make test executable
-add_executable(tests tests/main.cpp src/lib/Lexer.cpp src/lib/Token.cpp)
+add_executable(tests tests/main.cpp src/lib/JSLexer.cpp src/lib/Token.cpp)
 target_compile_features(tests PRIVATE cxx_std_20)
-target_link_libraries(tests PRIVATE doctest::doctest)# build the main minjsc executable
+target_link_libraries(tests PRIVATE doctest::doctest)# build the main minijsc executable
 
 # build the binary
-add_executable(minjsc src/bin/main.cpp)
-target_include_directories(minjsc PUBLIC "${PROJECT_SOURCE_DIR}/include")
-target_link_libraries(minjsc libminijsc)
+add_executable(minijsc src/bin/main.cpp)
+target_include_directories(minijsc PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_link_libraries(minijsc libminijsc)
+
 
 target_link_libraries(libminijsc ${extra_libs})
 
@@ -35,9 +40,9 @@ if (NOT DEFINED CLANG_TIDY_BIN)
             NAMES clang-tidy clang-tidy-12)
 endif()
 if ("${CLANG_TIDY_BIN}" STREQUAL "CLANG_TIDY_BIN-NOTFOUND")
-    message(WARNING "minjsc/main couldn't find clang-tidy.")
+    message(WARNING "minijsc/main couldn't find clang-tidy.")
 else()
     # Output compile_commands.json
     set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
-    message(STATUS "minjsc/main found clang-tidy at ${CLANG_TIDY_BIN}")
+    message(STATUS "minijsc/main found clang-tidy at ${CLANG_TIDY_BIN}")
 endif()

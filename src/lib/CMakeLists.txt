@@ -1,5 +1,5 @@
 set(minijsc_lib_src
-    Lexer.cpp
+    JSLexer.cpp
     Token.cpp
 )
 

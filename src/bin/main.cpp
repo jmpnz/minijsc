@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "Lexer.h"
+#include "JSLexer.h"
 #include "Token.h"
 
 auto main() -> int {
@@ -13,10 +13,11 @@ auto main() -> int {
         std::cout << word << " ";
     }
     std::cout << std::endl;
-    auto source = "let a = 5 * 3;";
-    auto tok    = minijsc::Token(minijsc::TokenType::Let, "LET", "");
+    const char* source = "let a = 5 * 3;";
+    auto tok           = minijsc::Token(minijsc::TokenKind::Let, "LET", "");
     std::cout << tok.toString() << '\n';
 
-    auto lexer = minijsc::Lexer(source);
+    auto lexer = minijsc::JSLexer(source);
     lexer.lex();
+    auto tokens = lexer.getTokens();
 }

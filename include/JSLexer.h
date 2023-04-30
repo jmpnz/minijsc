@@ -17,69 +17,69 @@ auto isDigit(char chr) -> bool;
 // Check if charcter is alphanumeric.
 auto isAlphaNumeric(char chr) -> bool;
 
-// Map of Javascript core keywords.
-static std::unordered_map<std::string, TokenType> javascriptKeywords = {
-    {"let", TokenType::Let},
-    {"var", TokenType::Var},
-    {"const", TokenType::Const},
-    {"function", TokenType::Function},
-    {"class", TokenType::Class},
-    {"super", TokenType::Super},
-    {"this", TokenType::This},
-    {"extends", TokenType::Extends},
-    {"delete", TokenType::Delete},
-    {"instanceof", TokenType::InstanceOf},
-    {"typeof", TokenType::TypeOf},
-    {"new", TokenType::New},
-    {"import", TokenType::Import},
-    {"export", TokenType::Export},
-    {"default", TokenType::Default},
-    {"return", TokenType::Return},
-    {"continue", TokenType::Continue},
-    {"break", TokenType::Break},
-    {"if", TokenType::If},
-    {"else", TokenType::Else},
-    {"switch", TokenType::Switch},
-    {"case", TokenType::Case},
-    {"throw", TokenType::Throw},
-    {"try", TokenType::Try},
-    {"catch", TokenType::Catch},
-    {"do", TokenType::Do},
-    {"while", TokenType::While},
-    {"for", TokenType::For},
-    {"in", TokenType::In},
-    {"of", TokenType::Of},
-    {"true", TokenType::True},
-    {"false", TokenType::False},
-    {"null", TokenType::Null},
+// JavaScript keywords.
+static std::unordered_map<std::string, TokenKind> jsKeywords = {
+    {"let", TokenKind::Let},
+    {"var", TokenKind::Var},
+    {"const", TokenKind::Const},
+    {"function", TokenKind::Function},
+    {"class", TokenKind::Class},
+    {"super", TokenKind::Super},
+    {"this", TokenKind::This},
+    {"extends", TokenKind::Extends},
+    {"delete", TokenKind::Delete},
+    {"instanceof", TokenKind::InstanceOf},
+    {"typeof", TokenKind::TypeOf},
+    {"new", TokenKind::New},
+    {"import", TokenKind::Import},
+    {"export", TokenKind::Export},
+    {"default", TokenKind::Default},
+    {"return", TokenKind::Return},
+    {"continue", TokenKind::Continue},
+    {"break", TokenKind::Break},
+    {"if", TokenKind::If},
+    {"else", TokenKind::Else},
+    {"switch", TokenKind::Switch},
+    {"case", TokenKind::Case},
+    {"throw", TokenKind::Throw},
+    {"try", TokenKind::Try},
+    {"catch", TokenKind::Catch},
+    {"do", TokenKind::Do},
+    {"while", TokenKind::While},
+    {"for", TokenKind::For},
+    {"in", TokenKind::In},
+    {"of", TokenKind::Of},
+    {"true", TokenKind::True},
+    {"false", TokenKind::False},
+    {"null", TokenKind::Null},
 };
 
 // Lexer class implements a lexical analysis module, it consumes text (source)
 // and transforms it to a list of tokens.
-class Lexer {
+class JSLexer {
     public:
     // Default constructor
-    Lexer(std::string source) : source(std::move(source)) {}
+    explicit JSLexer(std::string source) : source(std::move(source)) {}
 
-    // lex is the main lexer method, calling `lex` will walk the source
-    // string and build an `std::vector` of tokens.
+    // Run the lexical analysis pass, populating the vector of tokens.
     auto lex() -> void;
 
-    // Private functions that are not part of the Lexer's API.
+    // Return the internal vector of tokens.
+    auto getTokens() -> std::vector<Token> { return tokens; }
 
-    // Scan multiple tokens.
+    // Scan the source code and populate the the vector of tokens, the function
+    // acts as a proxy for `lex`.
     auto scanTokens() -> std::vector<Token>;
-    // Scan a single token after recognizing its lexeme, add it to the tokens
-    // list.
+    // Single token lexical pass
     auto scanToken() -> void;
     // Advance the lexer's cursor position.
     auto advance() -> char;
     // Add a token to the list (for single lexeme tokens).
-    auto addToken(TokenType typ) -> void;
+    auto addToken(TokenKind typ) -> void;
     // Add a token with a literal value.
-    auto addToken(TokenType typ, std::string literal);
+    auto addToken(TokenKind typ, const std::string& literal);
     // Add a token with a numeric value.
-    auto addToken(TokenType typ, double value);
+    auto addToken(TokenKind typ, double literal);
     // Check if we reached the end of file.
     auto isAtEnd() -> bool;
     // Match checks if the next token matches the argument.
@@ -98,7 +98,6 @@ class Lexer {
     auto peekNext() -> char;
 
     private:
-    // Class members declarations
     // Index of starting current token.
     size_t start = 0;
     // Index of the cursor in the source.

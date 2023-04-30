@@ -4,6 +4,6 @@
 
 [ ] Check WebKit blog (FTL, B3) for JIT architecture and implementation details.
 
-
+[ ] Rewrite our Lexer with a focus on performance
 
 [1]: https://rust-hosted-langs.github.io/book/chapter-interp-tagged-ptrs.html

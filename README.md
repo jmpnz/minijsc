@@ -21,5 +21,13 @@ $ make all
 
 ## Style
 
-We follow LLVM style guide, except for variables we prefer camelCase with lower
-starting character.
+We largely follow the LLVM style guide which is documented [here](https://llvm.org/docs/CodingStandards.html)
+with slight deviations.
+
+* We use camelBack (CamelCase with starting lower case for variable names).
+* Doxygen style comment blocks `///` regardless of visibility.
+* Use enum classes and the enum type prefix, for example `enum class ValueKind`
+    would be used as `ValueKind::JSFloat64`.
+
+Running `clang-format` and `clang-tidy` should help find any mechanical styling
+issues.
