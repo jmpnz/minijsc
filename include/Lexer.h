@@ -17,8 +17,8 @@ auto isDigit(char chr) -> bool;
 // Check if charcter is alphanumeric.
 auto isAlphaNumeric(char chr) -> bool;
 
-// Map of keywords.
-static std::unordered_map<std::string, TokenType> Keywords = {
+// Map of Javascript core keywords.
+static std::unordered_map<std::string, TokenType> javascriptKeywords = {
     {"let", TokenType::Let},
     {"var", TokenType::Var},
     {"const", TokenType::Const},
@@ -28,8 +28,8 @@ static std::unordered_map<std::string, TokenType> Keywords = {
     {"this", TokenType::This},
     {"extends", TokenType::Extends},
     {"delete", TokenType::Delete},
-    {"instanceOf", TokenType::InstanceOf},
-    {"typeOf", TokenType::TypeOf},
+    {"instanceof", TokenType::InstanceOf},
+    {"typeof", TokenType::TypeOf},
     {"new", TokenType::New},
     {"import", TokenType::Import},
     {"export", TokenType::Export},

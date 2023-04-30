@@ -153,8 +153,8 @@ auto Lexer::scanIdentifier() -> void {
     }
     auto len  = current - start;
     auto text = source.substr(start, len);
-    auto iter = Keywords.find(text);
-    if (iter == Keywords.end()) {
+    auto iter = javascriptKeywords.find(text);
+    if (iter == javascriptKeywords.end()) {
         addToken(TokenType::Identifier, text);
         return;
     }

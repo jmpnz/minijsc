@@ -24,9 +24,9 @@ TEST_CASE("check that all JavaScript keywords are handled") {
     };
 
     for (const auto& keyword : keywords) {
-        auto iter = minijsc::Keywords.find(keyword);
+        auto iter = minijsc::javascriptKeywords.find(keyword);
         INFO("Checking keyword: ", keyword);
-        CHECK(iter != minijsc::Keywords.end());
+        CHECK(iter != minijsc::javascriptKeywords.end());
     }
 }
 
