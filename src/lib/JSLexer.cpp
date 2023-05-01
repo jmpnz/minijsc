@@ -21,22 +21,22 @@ auto JSLexer::advance() -> char {
 }
 
 // Append a token without a lexeme to the vector of tokens.
-auto JSLexer::addToken(JSTokenKind typ) -> void {
-    tokens.emplace_back(typ, "", "");
+auto JSLexer::addToken(JSTokenKind kind) -> void {
+    tokens.emplace_back(kind, "", "");
 }
 
 // Append the token with its literal value (String).
-auto JSLexer::addToken(JSTokenKind typ, const std::string& literal) {
+auto JSLexer::addToken(JSTokenKind kind, const std::string& literal) {
     auto len  = current - start;
     auto text = source.substr(start, len);
-    tokens.emplace_back(typ, text, literal);
+    tokens.emplace_back(kind, text, literal);
 }
 
 // Append the token with its literal value (Numeric).
-auto JSLexer::addToken(JSTokenKind typ, double literal) {
+auto JSLexer::addToken(JSTokenKind kind, double literal) {
     auto len  = current - start;
     auto text = source.substr(start, len);
-    tokens.emplace_back(typ, text, literal);
+    tokens.emplace_back(kind, text, literal);
 }
 
 // Core lexer scanning function.
@@ -248,7 +248,7 @@ auto JSLexer::peekNext() -> char {
 auto JSLexer::isAtEnd() -> bool { return current >= source.length(); }
 
 // Process source code and build a list of processed tokens.
-auto JSLexer::lex() -> void { scanToken(); }
+auto JSLexer::lex() -> void { scanTokens(); }
 
 // Check if character is alphabet or underscore.
 auto isAlpha(char chr) -> bool {

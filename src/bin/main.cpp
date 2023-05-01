@@ -5,6 +5,7 @@
 
 #include <cstdlib>
 
+#include "Bytecode.h"
 #include "JSLexer.h"
 #include "JSToken.h"
 
@@ -42,5 +43,6 @@ auto main(int argc, char** argv) -> int {
         }
         std::cout << '\n';
     }
+
     exit(1);
 }

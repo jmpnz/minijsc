@@ -1,6 +1,8 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+#include "JSValue.h"
+
 #include <string>
 #include <utility>
 #include <variant>
@@ -109,6 +111,9 @@ class JSToken {
     // Return the token kind.
     auto getKind() -> JSTokenKind { return kind; }
 
+    // Return the value literal.
+    auto getLiteral() -> JSBasicValue { return literal; }
+
     private:
     // Token kind
     JSTokenKind kind;
@@ -116,7 +121,7 @@ class JSToken {
     std::string lexeme;
     // Literal is the literal value associated with some token types
     // such as numeric values, strings or identifiers.
-    std::variant<double, std::string> literal;
+    JSBasicValue literal;
 };
 
 }; // namespace minijsc

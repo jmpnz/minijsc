@@ -5,6 +5,8 @@
 #include "JSToken.h"
 #include "JSValue.h"
 
+#include "Bytecode.h"
+
 #include <cstdio>
 
 #include <algorithm>
@@ -81,6 +83,11 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
 
         for (size_t i = 0; i < tokens.size(); i++) {
             CHECK(tokens[i].getKind() == expected[i]);
+            if (tokens[i].getLiteral().isNumber()) {
+                CHECK(
+                    tokens[i].getLiteral().getValue<JSBasicValue::JSNumber>() ==
+                    3.14);
+            }
         }
     }
     SUBCASE("const a = 3.14;") {
@@ -259,4 +266,14 @@ TEST_CASE("testing the JSBasicValue class") {
 
     JSBasicValue undefined;
     CHECK(undefined.isUndefined() == true);
+}
+
+TEST_CASE("testing the Disassembler class") {
+    std::vector<OPCode> bc = {
+        OPCode::OPReturn,
+    };
+
+    Disassembler disas(bc, "test-program");
+
+    disas.disassemble();
 }

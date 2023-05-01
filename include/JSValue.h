@@ -14,16 +14,16 @@ namespace minijsc {
 /// JSBasicValue is implemented using a variant around C++ primitive types
 class JSBasicValue {
     public:
+    // JSUndefined aliases the std::monostate type for empty values.
+    using JSUndefined = std::monostate;
+    // JSNull aliases the nullptr type.
+    using JSNull = std::nullptr_t;
     // JSNumber aliases the double type.
     using JSNumber = double;
     // JSBoolean aliases the bool type.
     using JSBoolean = bool;
     // JSString aliases the string types (includes std::string & char*).
     using JSString = std::string;
-    // JSUndefined aliases the std::monostate type for empty values.
-    using JSUndefined = std::monostate;
-    // JSNull aliases the nullptr type.
-    using JSNull = std::nullptr_t;
     // JSValueType is a type that can hold all possible variants of JavaScript's
     // primitive values.
     using JSValueType =

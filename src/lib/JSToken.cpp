@@ -115,11 +115,12 @@ auto JSToken::toString() const -> std::string {
     case JSTokenKind::Export:
         return "EXPORT";
     case JSTokenKind::String:
-        return "STRING(" + std::get<std::string>(literal) + ")";
+        return "STRING(" + literal.getValue<JSBasicValue::JSString>() + ")";
     case JSTokenKind::Identifier:
-        return "IDENTIFIER(" + std::get<std::string>(literal) + ")";
+        return "IDENTIFIER(" + literal.getValue<JSBasicValue::JSString>() + ")";
     case JSTokenKind::Numeric:
-        return "NUMERIC(" + std::to_string(std::get<double>(literal)) + ")";
+        return "NUMERIC(" +
+               std::to_string(literal.getValue<JSBasicValue::JSNumber>()) + ")";
     case JSTokenKind::Eof:
         return "EOF";
     }

@@ -75,11 +75,11 @@ class JSLexer {
     // Advance the lexer's cursor position.
     auto advance() -> char;
     // Add a token to the list (for single lexeme tokens).
-    auto addToken(JSTokenKind typ) -> void;
+    auto addToken(JSTokenKind kind) -> void;
     // Add a token with a literal value.
-    auto addToken(JSTokenKind typ, const std::string& literal);
+    auto addToken(JSTokenKind kind, const std::string& literal);
     // Add a token with a numeric value.
-    auto addToken(JSTokenKind typ, double literal);
+    auto addToken(JSTokenKind kind, double literal);
     // Check if we reached the end of file.
     auto isAtEnd() -> bool;
     // Match checks if the next token matches the argument.
