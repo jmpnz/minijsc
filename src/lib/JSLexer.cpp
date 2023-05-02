@@ -1,3 +1,6 @@
+#include "fmt/color.h"
+#include "fmt/core.h"
+
 #include "JSLexer.h"
 #include "JSToken.h"
 #include "JSValue.h"
@@ -142,7 +145,8 @@ auto JSLexer::scanToken() -> void {
         } else if (isAlpha(nextChar)) {
             scanIdentifier();
         } else {
-            printf("Unexpected token");
+            fmt::print(fmt::emphasis::bold | fg(fmt::color::red),
+                       "Unexpected token: {}\n", nextChar);
         }
         break;
     }

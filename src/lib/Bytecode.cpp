@@ -1,3 +1,7 @@
+#include "fmt/color.h"
+#include "fmt/core.h"
+#include "fmt/format.h"
+
 #include "Bytecode.h"
 
 #include <cstdint>
@@ -8,8 +12,8 @@
 namespace minijsc {
 
 auto Disassembler::disassemble() -> void {
-    printf("== %s ==\n", name.c_str());
-
+    fmt::print(fmt::emphasis::bold | fg(fmt::color::green), "==== {} ====\n",
+               name);
     for (size_t offset = 0; offset < code.size();) {
         offset = disassembleInstruction(offset);
     }
@@ -17,13 +21,13 @@ auto Disassembler::disassemble() -> void {
 
 auto Disassembler::disassembleInstruction(size_t offset) -> size_t {
     // Print the instruction offset.
-    printf("%04zu", offset);
+    fmt::print("{:04}", offset);
     // Grab the instruction's from the offset.
     auto instruction = code.at(offset);
 
     // Helpful lambdas to print things.
     auto instPrinter = [&offset](const std::string& name) {
-        printf("    %s\n", name.c_str());
+        fmt::print("        {}\n", name);
         return offset + 1;
     };
 
@@ -31,9 +35,16 @@ auto Disassembler::disassembleInstruction(size_t offset) -> size_t {
     case OPCode::OPReturn:
         return instPrinter("OP_RETURN");
     default:
-        printf("Unknown instruction %hhu at offset %zu", instruction, offset);
+        fmt::print(stdout, "\nUnknown instruction {:04} at offset {:04}\n",
+                   (uint8_t)instruction, offset);
         return offset + 1;
     }
 }
+
+#ifdef EASTER_EGG
+
+#define QUOTE "Omnia mea mecum porto"
+
+#endif
 
 } // namespace minijsc

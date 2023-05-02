@@ -12,6 +12,8 @@ add_compile_options(-Wno-unused-parameter -Wno-unused-function -Wno-sign-convers
 # headers and third party libraries.
 include_directories("${PROJECT_SOURCE_DIR}/include")
 
+include_directories("${PROJECT_SOURCE_DIR}/third_party/fmt/include")
+add_definitions("-DFMT_HEADER_ONLY=1")
 # source code directories.
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/lib")
 add_subdirectory("${PROJECT_SOURCE_DIR}/src/bin")

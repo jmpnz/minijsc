@@ -1,5 +1,8 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
+#include "fmt/color.h"
+#include "fmt/core.h"
+#include "fmt/printf.h"
 
 #include "JSLexer.h"
 #include "JSToken.h"
@@ -269,11 +272,18 @@ TEST_CASE("testing the JSBasicValue class") {
 }
 
 TEST_CASE("testing the Disassembler class") {
-    std::vector<OPCode> bc = {
-        OPCode::OPReturn,
-    };
+    SUBCASE("testing with valid disassembly") {
+        std::vector<OPCode> bc = {
+            OPCode::OPReturn,
+        };
 
-    Disassembler disas(bc, "test-program");
+        Disassembler disas(bc, "test-valid-program");
+        disas.disassemble();
+    }
+    SUBCASE("testing with invalid disassembly") {
+        std::vector<OPCode> bc = {(OPCode)19, (OPCode)201};
 
-    disas.disassemble();
+        Disassembler disas(bc, "test-invalid-program");
+        disas.disassemble();
+    }
 }

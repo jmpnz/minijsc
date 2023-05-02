@@ -76,6 +76,8 @@ $ make all
 
 ```
 
+Currently the only third party library part of minijsc is fmt, we use fmt v9.1.0.
+
 ## Style
 
 We largely follow the LLVM style guide which is documented [here](https://llvm.org/docs/CodingStandards.html)
