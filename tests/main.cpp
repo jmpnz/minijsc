@@ -9,6 +9,7 @@
 #include "JSValue.h"
 
 #include "Bytecode.h"
+#include "VM.h"
 
 #include <cstdio>
 
@@ -269,6 +270,18 @@ TEST_CASE("testing the JSBasicValue class") {
 
     JSBasicValue undefined;
     CHECK(undefined.isUndefined() == true);
+}
+
+TEST_CASE("testing bytecode virtual machine") {
+#define DEBUG_TRACE_EXECUTION
+    std::vector<OPCode> bc = {
+        OPCode::OPConstant,
+        OPCode(0),
+    };
+    auto vm = VM(bc);
+    vm.storeConstant(JSBasicValue(3.14));
+
+    vm.run();
 }
 
 TEST_CASE("testing the Disassembler class") {

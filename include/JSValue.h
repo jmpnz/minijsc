@@ -1,6 +1,8 @@
 #ifndef JSVALUE_H
 #define JSVALUE_H
 
+#include "fmt/core.h"
+
 #include <cstddef>
 #include <optional>
 #include <string>
@@ -80,9 +82,25 @@ class JSBasicValue {
         return type == JSType::String;
     }
 
+    // Return a string representation of the value.
+    auto toString() -> std::string {
+        switch (type) {
+        case JSType::Undefined:
+            return "undefined";
+        case JSType::Null:
+            return "null";
+        case JSType::Boolean:
+            return std::to_string(static_cast<int>(getValue<bool>()));
+        case JSType::Number:
+            return std::to_string(getValue<double>());
+        case JSType::String:
+            return getValue<std::string>();
+        }
+    }
+
     // Returns the underlying value stored.
-    template <typename T> auto getValue() const -> T {
-        if (auto val = std::get_if<T>(&value)) {
+    template <typename T> [[nodiscard]] auto getValue() const -> T {
+        if (const auto* val = std::get_if<T>(&value)) {
             return *val;
         }
         return T{};

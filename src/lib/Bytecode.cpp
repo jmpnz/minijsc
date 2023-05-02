@@ -35,7 +35,8 @@ auto Disassembler::disassembleInstruction(size_t offset) -> size_t {
     case OPCode::OPReturn:
         return instPrinter("OP_RETURN");
     default:
-        fmt::print(stdout, "\nUnknown instruction {:04} at offset {:04}\n",
+        fmt::print(fmt::emphasis::bold | fg(fmt::color::red),
+                   "\nUnknown instruction {:04} at offset {:04}\n",
                    (uint8_t)instruction, offset);
         return offset + 1;
     }

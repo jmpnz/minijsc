@@ -27,6 +27,8 @@ using Bytecode = std::vector<OPCode>;
 /// The disassembler is mainly used to help with debugging the virtual machine.
 class Disassembler {
     public:
+    explicit Disassembler() = default;
+
     /// Constructor takes the bytecode to disassemble and a program
     // name to debug.
     explicit Disassembler(Bytecode code, std::string name)
