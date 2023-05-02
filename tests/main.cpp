@@ -277,6 +277,7 @@ TEST_CASE("testing bytecode virtual machine") {
     std::vector<OPCode> bc = {
         OPCode::OPConstant,
         OPCode(0),
+        OPCode::OPReturn,
     };
     auto vm = VM(bc);
     vm.storeConstant(JSBasicValue(3.14));

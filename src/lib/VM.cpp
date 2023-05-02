@@ -20,19 +20,30 @@ auto VM::run() -> VMResult {
 #endif
         switch (inst) {
         case OPCode::OPReturn:
+            fmt::print(stdout, "JSBasicValue: {}\n", pop().toString());
             return VMResult::Ok;
         case OPCode::OPConstant:
             // Next opcode after OPConstant is the byte offset
             // in the constants pool.
             auto offset = fetch();
-            fmt::print("Next OPCode : {}\n", (int)offset);
+            //   fmt::print("Next OPCode : {}\n", (int)offset);
             JSBasicValue value = ctx->loadConstant((size_t)offset);
-            fmt::print(stdout, "JSBasicValue: {}\n", value.toString());
+            //  fmt::print(stdout, "JSBasicValue: {}\n", value.toString());
+            push(value);
             break;
         }
     }
 
     return VMResult::Ok;
+}
+
+/// Display the contents of stack.
+auto VM::displayStack() -> void {
+    fmt::print("        ");
+    for (const auto& value : stack) {
+        fmt::print("[ {} ]", value.toString());
+    }
+    fmt::print("\n");
 }
 
 } // namespace minijsc

@@ -83,7 +83,7 @@ class JSBasicValue {
     }
 
     // Return a string representation of the value.
-    auto toString() -> std::string {
+    [[nodiscard]] auto toString() const -> std::string {
         switch (type) {
         case JSType::Undefined:
             return "undefined";
@@ -118,7 +118,6 @@ class JSBasicValue {
     private:
     // Static methods that are used in the `setValue` to store
     // the proper type.
-
     static auto getTypeFromValue(std::nullptr_t) -> JSType {
         return JSType::Null;
     }

@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "Bytecode.h"
 #include "JSValue.h"
@@ -10,6 +11,9 @@
 #define DEBUG_TRACE_EXECUTION
 
 namespace minijsc {
+
+/// Stack can support up to 2**16 values.
+static constexpr size_t MaxStackSize = 65536;
 
 /// Virtual machine context used during execution, context creates a value
 /// pool to store constants and immediates.
@@ -29,6 +33,9 @@ struct VMContext {
     std::vector<JSBasicValue> constantsPool;
 };
 
+/// Virtual machine stack.
+using VMStack = std::vector<JSBasicValue>;
+
 /// Virtual machine class implements a stack based virtual machine.
 class VM {
     /// Virtual machine interpretation results.
@@ -41,7 +48,6 @@ class VM {
     public:
     // VM constructor that we use to load bytecode for execution.
     explicit VM(const Bytecode& bcode) {
-        // code(std::move(code)), ctx(std::make_unique<VMContext>())
         code = bcode;
         ctx  = std::make_unique<VMContext>();
 #ifdef DEBUG_TRACE_EXECUTION
@@ -69,6 +75,19 @@ class VM {
     // Run the execution loop.
     auto run() -> VMResult;
 
+    // Push value onto the stack.
+    auto push(const JSBasicValue& value) -> void { stack.push_back(value); }
+
+    // Pop value from the stack.
+    auto pop() -> JSBasicValue {
+        auto value = stack.back();
+        stack.pop_back();
+        return value;
+    }
+
+    // Display the stack contents.
+    auto displayStack() -> void;
+
     private:
     // Instruction pointer, since we're not doing memory mapped I/O
     // and all execution is in a single context the instruction pointer
@@ -76,6 +95,8 @@ class VM {
     uint32_t ip = 0;
     // Bytecode to execute.
     Bytecode code;
+    // Virtual machine's stack.
+    VMStack stack;
     // Execution context.
     std::unique_ptr<VMContext> ctx;
 #ifdef DEBUG_TRACE_EXECUTION
