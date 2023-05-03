@@ -88,9 +88,7 @@ TEST_CASE("testing the lexing of multicharacter tokens") {
         for (size_t i = 0; i < tokens.size(); i++) {
             CHECK(tokens[i].getKind() == expected[i]);
             if (tokens[i].getLiteral().isNumber()) {
-                CHECK(
-                    tokens[i].getLiteral().getValue<JSBasicValue::JSNumber>() ==
-                    3.14);
+                CHECK(tokens[i].getLiteral().getValue<JSNumber>() == 3.14);
             }
         }
     }

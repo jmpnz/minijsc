@@ -11,89 +11,95 @@
 
 namespace minijsc {
 
+// JSUndefined aliases the std::monostate type for empty values.
+using JSUndefined = std::monostate;
+// JSNull aliases the nullptr type.
+using JSNull = std::nullptr_t;
+// JSNumber aliases the double type.
+using JSNumber = double;
+// JSBoolean aliases the bool type.
+using JSBoolean = bool;
+// JSString aliases the string types (includes std::string & char*).
+using JSString = std::string;
+
+// JSValueType is a type that can hold all possible variants of JavaScript's
+// primitive values.
+using JSPrimitiveValue =
+    std::variant<JSNumber, JSBoolean, JSString, JSUndefined, JSNull>;
+
+// JSType enumerates the possible Javascript primitive types.
+enum class JSValueKind {
+    Undefined,
+    Null,
+    Number,
+    Boolean,
+    String,
+};
+
 /// JSBasicValue class represents a JavaScript primitive value, primitives
 /// include numbers, booleans, strings and the undefined and null types.
 /// JSBasicValue is implemented using a variant around C++ primitive types
 class JSBasicValue {
     public:
-    // JSUndefined aliases the std::monostate type for empty values.
-    using JSUndefined = std::monostate;
-    // JSNull aliases the nullptr type.
-    using JSNull = std::nullptr_t;
-    // JSNumber aliases the double type.
-    using JSNumber = double;
-    // JSBoolean aliases the bool type.
-    using JSBoolean = bool;
-    // JSString aliases the string types (includes std::string & char*).
-    using JSString = std::string;
-    // JSValueType is a type that can hold all possible variants of JavaScript's
-    // primitive values.
-    using JSValueType =
-        std::variant<JSNumber, JSBoolean, JSString, JSUndefined, JSNull>;
-
-    // JSType enumerates the possible Javascript primitive types.
-    enum class JSType {
-        Undefined,
-        Null,
-        Number,
-        Boolean,
-        String,
-    };
-
     // Default constructor sets the type to undefined, the variant is in monostate.
-    JSBasicValue() : type(JSType::Undefined) {}
+    JSBasicValue() : type(JSValueKind::Undefined) {}
+
+    // Copy constructor.
+    JSBasicValue(const JSBasicValue&) = default;
 
     // Constructor for numeric values.
-    JSBasicValue(JSNumber number) : value(number), type(JSType::Number) {}
+    JSBasicValue(JSNumber number) : value(number), type(JSValueKind::Number) {}
 
     // Constructor for null values.
-    JSBasicValue(JSNull /*null*/) : type(JSType::Null) {}
+    JSBasicValue(JSNull /*null*/) : type(JSValueKind::Null) {}
 
     // Constructor for boolean values.
-    JSBasicValue(JSBoolean boolean) : value(boolean), type(JSType::Boolean) {}
+    JSBasicValue(JSBoolean boolean)
+        : value(boolean), type(JSValueKind::Boolean) {}
 
     // Constructor for string values.
-    JSBasicValue(JSString str) : value(std::move(str)), type(JSType::String) {}
+    JSBasicValue(JSString str)
+        : value(std::move(str)), type(JSValueKind::String) {}
 
     // COnstructor for C-string values.
     JSBasicValue(const char* str)
-        : value(std::string(str)), type(JSType::String) {}
+        : value(std::string(str)), type(JSValueKind::String) {}
 
     // Return the `JSType` of this value.
-    [[nodiscard]] auto getType() const -> JSType { return type; }
+    [[nodiscard]] auto getType() const -> JSValueKind { return type; }
 
     // Check if the value is undefined.
     [[nodiscard]] auto isUndefined() const -> bool {
-        return type == JSType::Undefined;
+        return type == JSValueKind::Undefined;
     }
 
     // Check if the value is a number.
     [[nodiscard]] auto isNumber() const -> bool {
-        return type == JSType::Number;
+        return type == JSValueKind::Number;
     }
 
     // Check if the value is a boolean.
     [[nodiscard]] auto isBoolean() const -> bool {
-        return type == JSType::Boolean;
+        return type == JSValueKind::Boolean;
     }
 
     // Check if the value is a string.
     [[nodiscard]] auto isString() const -> bool {
-        return type == JSType::String;
+        return type == JSValueKind::String;
     }
 
     // Return a string representation of the value.
     [[nodiscard]] auto toString() const -> std::string {
         switch (type) {
-        case JSType::Undefined:
+        case JSValueKind::Undefined:
             return "undefined";
-        case JSType::Null:
+        case JSValueKind::Null:
             return "null";
-        case JSType::Boolean:
-            return std::to_string(static_cast<int>(getValue<bool>()));
-        case JSType::Number:
+        case JSValueKind::Boolean:
+            return getValue<bool>() ? "true" : "false";
+        case JSValueKind::Number:
             return std::to_string(getValue<double>());
-        case JSType::String:
+        case JSValueKind::String:
             return getValue<std::string>();
         }
     }
@@ -111,37 +117,37 @@ class JSBasicValue {
     // this point, which is something we want to explore once we start supporting
     // JSObject in the future.
     template <typename T> auto setValue(T value) {
-        this->type  = getTypeFromValue(value);
+        this->type  = getKindFromValue(value);
         this->value = std::move(value);
     }
 
     private:
     // Static methods that are used in the `setValue` to store
     // the proper type.
-    static auto getTypeFromValue(std::nullptr_t) -> JSType {
-        return JSType::Null;
+    static auto getKindFromValue(std::nullptr_t) -> JSValueKind {
+        return JSValueKind::Null;
     }
 
-    static auto getTypeFromValue(bool /*unused*/) -> JSType {
-        return JSType::Boolean;
+    static auto getKindFromValue(bool /*unused*/) -> JSValueKind {
+        return JSValueKind::Boolean;
     }
 
-    static auto getTypeFromValue(double /*unused*/) -> JSType {
-        return JSType::Number;
+    static auto getKindFromValue(double /*unused*/) -> JSValueKind {
+        return JSValueKind::Number;
     }
 
-    static auto getTypeFromValue(const char* /*unused*/) -> JSType {
-        return JSType::String;
+    static auto getKindFromValue(const char* /*unused*/) -> JSValueKind {
+        return JSValueKind::String;
     }
 
-    static auto getTypeFromValue(const std::string& /*unused*/) -> JSType {
-        return JSType::String;
+    static auto getKindFromValue(const std::string& /*unused*/) -> JSValueKind {
+        return JSValueKind::String;
     }
 
     // Underlying value stored in JSBasicValue.
-    JSValueType value;
+    JSPrimitiveValue value;
     // Javascript type of the underlying stored value.
-    JSType type;
+    JSValueKind type;
 };
 
 }; // namespace minijsc

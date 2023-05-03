@@ -13,7 +13,7 @@
 namespace minijsc {
 
 /// Stack can support up to 2**16 values.
-static constexpr size_t MaxStackSize = 65536;
+static constexpr size_t kMaxStackSize = 65536;
 
 /// Virtual machine context used during execution, context creates a value
 /// pool to store constants and immediates.

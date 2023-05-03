@@ -6,4 +6,6 @@
 
 [ ] Rewrite our Lexer with a focus on performance
 
+[ ] Check YJIT IR
+
 [1]: https://rust-hosted-langs.github.io/book/chapter-interp-tagged-ptrs.html

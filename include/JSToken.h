@@ -97,7 +97,7 @@ class JSToken {
     public:
     // Default constructor.
     explicit JSToken(JSTokenKind typ, std::string lexeme,
-                     std::string literal)                           // NOLINT
+                     JSBasicValue literal)                          // NOLINT
         : kind(typ), lexeme(std::move(lexeme)), literal(literal) {} // NOLINT
 
     // Default constructo for numeric values.
