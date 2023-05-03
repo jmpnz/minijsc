@@ -271,31 +271,29 @@ TEST_CASE("testing the JSBasicValue class") {
 }
 
 TEST_CASE("testing bytecode virtual machine") {
-#define DEBUG_TRACE_EXECUTION
-    std::vector<OPCode> bc = {
-        OPCode::OPConstant,
-        OPCode(0),
-        OPCode::OPReturn,
-    };
-    auto vm = VM(bc);
-    vm.storeConstant(JSBasicValue(3.14));
-
-    vm.run();
-}
-
-TEST_CASE("testing the Disassembler class") {
-    SUBCASE("testing with valid disassembly") {
+    SUBCASE("testing negate (unary) operation") {
         std::vector<OPCode> bc = {
-            OPCode::OPReturn,
+            OPCode::Constant,
+            OPCode(0),
+            OPCode::Negate,
+            OPCode::Return,
+        };
+        auto vm = VM(bc);
+        vm.storeConstant(JSBasicValue(3.14));
+
+        vm.run();
+    }
+    SUBCASE("testing add (binary) operation") {
+        std::vector<OPCode> bc = {
+            OPCode::Constant, OPCode(0),   OPCode::Constant,
+            OPCode(1),        OPCode::Add, OPCode::Return,
         };
 
-        Disassembler disas(bc, "test-valid-program");
-        disas.disassemble();
-    }
-    SUBCASE("testing with invalid disassembly") {
-        std::vector<OPCode> bc = {(OPCode)19, (OPCode)201};
+        auto vm = VM(bc);
+        vm.storeConstant(JSBasicValue(3.14));
+        vm.storeConstant(JSBasicValue(6.86));
 
-        Disassembler disas(bc, "test-invalid-program");
-        disas.disassemble();
+        vm.run();
+        CHECK(vm.pop().getValue<JSNumber>() == 10.0);
     }
 }

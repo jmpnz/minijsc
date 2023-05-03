@@ -32,7 +32,19 @@ auto Disassembler::disassembleInstruction(size_t offset) -> size_t {
     };
 
     switch (instruction) {
-    case OPCode::OPReturn:
+    case OPCode::Constant:
+        return instPrinter("OP_CONSTANT");
+    case OPCode::Add:
+        return instPrinter("OP_ADD");
+    case OPCode::Sub:
+        return instPrinter("OP_SUB");
+    case OPCode::Mul:
+        return instPrinter("OP_MUL");
+    case OPCode::Div:
+        return instPrinter("OP_DIV");
+    case OPCode::Negate:
+        return instPrinter("OP_NEGATE");
+    case OPCode::Return:
         return instPrinter("OP_RETURN");
     default:
         fmt::print(fmt::emphasis::bold | fg(fmt::color::red),

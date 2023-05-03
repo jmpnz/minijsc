@@ -63,8 +63,8 @@ class VM {
     }
 
     /// Store a value in the constants pool.
-    auto storeConstant(JSBasicValue value) -> void {
-        ctx->storeConstant(std::move(value));
+    auto storeConstant(const JSBasicValue& value) -> void {
+        ctx->storeConstant(value);
     }
 
     /// Load a value from the constants pool.

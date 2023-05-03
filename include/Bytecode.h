@@ -15,8 +15,13 @@ namespace minijsc {
 /// loading or storing immediates are backed by a higher level object
 /// pool.
 enum class OPCode : uint8_t {
-    OPReturn,
-    OPConstant,
+    Return,
+    Constant,
+    Negate,
+    Add,
+    Sub,
+    Mul,
+    Div,
 };
 
 /// Bytecode is a sequence of opcodes.
