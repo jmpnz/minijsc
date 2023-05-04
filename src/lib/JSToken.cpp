@@ -110,6 +110,8 @@ auto JSToken::toString() const -> std::string {
         return "FALSE";
     case JSTokenKind::Null:
         return "NULL";
+    case JSTokenKind::Void:
+        return "VOID";
     case JSTokenKind::Import:
         return "IMPORT";
     case JSTokenKind::Export:

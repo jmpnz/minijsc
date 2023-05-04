@@ -110,10 +110,13 @@ class JSToken {
     [[nodiscard]] auto toString() const -> std::string;
 
     // Return the token kind.
-    auto getKind() -> JSTokenKind { return kind; }
+    [[nodiscard]] auto getKind() const -> JSTokenKind { return kind; }
 
     // Return the value literal.
-    auto getLiteral() -> JSBasicValue { return literal; }
+    [[nodiscard]] auto getLiteral() const -> JSBasicValue { return literal; }
+
+    // Return the lexeme.
+    [[nodiscard]] auto getLexeme() const -> std::string { return lexeme; }
 
     private:
     // Token kind

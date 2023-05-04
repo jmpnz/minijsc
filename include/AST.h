@@ -11,6 +11,8 @@
 //===----------------------------------------------------------------------===//
 #ifndef AST_H
 #define AST_H
+#include <utility>
+
 #include "JSToken.h"
 
 namespace minijsc {
@@ -23,6 +25,53 @@ class AstNode {
 
     /// Token literal for the node.
     virtual auto tokenLiteral() -> JSToken = 0;
+};
+
+/// Expression base interface.
+class JSExpr {
+    public:
+    virtual ~JSExpr() = 0;
+};
+
+// Aliases for references to JSExpr implementations.
+using JSExprRef = std::unique_ptr<JSExpr>;
+
+/// Binary expression implementation.
+class JSBinExpr : public JSExpr {
+    /// Binary expression constructor takes both sides of the expression
+    /// and their operand.
+    explicit JSBinExpr(JSExpr* left, JSToken binOp, JSExpr* right)
+        : left(left), right(right), binOp(std::move(binOp)) {}
+
+    private:
+    // Left handside of the binary operation.
+    JSExprRef left;
+    // Right handside of the binary operation.
+    JSExprRef right;
+    // Binary operator.
+    JSToken binOp;
+};
+
+/// Variable declaration, in JavaScript a variable declaration creates
+/// the variable without an assignment. Variable declarations allocate
+/// the variable and associate an identifier to it.
+/// Because variables declared without an initializater will end up
+/// undefined, we can mix variable statements and declarations in our
+/// class by having an optional assignemnt.
+/// Since assignments can take both bindings or expressions we need a way
+/// to represent this in our initializer field.
+/// `var a;` : `a` is undefined.
+/// `var a = (5 * 3 / 8) + "bob" : `a` is assigned an expression.
+/// `var a = function(a,b) { return a;}` : `a` is a binding to a function.
+class JSVariableDecl {
+    public:
+    /// Constructor with an identifier token.
+    explicit JSVariableDecl(JSToken token) : name(std::move(token)) {}
+
+    private:
+    /// Identifier associated to the variable declaration.
+    JSToken name;
+    /// Optional initializer.
 };
 
 /// Statement is a base class that defines all possible JavaScript statements.
