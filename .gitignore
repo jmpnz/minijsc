@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode,cmake,c++
 # Edit at https://www.toptal.com/developers/gitignore?templates=vim,visualstudiocode,cmake,c++
 
+### Project ###
+TODO.md
+
 ### C++ ###
 # Prerequisites
 *.d

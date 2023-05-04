@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 #ifndef AST_H
 #define AST_H
+#include <cstddef>
 #include <utility>
 
 #include "JSToken.h"
@@ -25,6 +26,12 @@ class AstNode {
 
     /// Token literal for the node.
     virtual auto tokenLiteral() -> JSToken = 0;
+};
+
+/// Statement base interface.
+class JSStmt {
+    public:
+    virtual ~JSStmt() = 0;
 };
 
 /// Expression base interface.
@@ -55,7 +62,7 @@ class JSBinExpr : public JSExpr {
 /// Variable declaration, in JavaScript a variable declaration creates
 /// the variable without an assignment. Variable declarations allocate
 /// the variable and associate an identifier to it.
-/// Because variables declared without an initializater will end up
+/// Because variables declared without an initializer will end up
 /// undefined, we can mix variable statements and declarations in our
 /// class by having an optional assignemnt.
 /// Since assignments can take both bindings or expressions we need a way
@@ -71,7 +78,8 @@ class JSVariableDecl {
     private:
     /// Identifier associated to the variable declaration.
     JSToken name;
-    /// Optional initializer.
+    /// Optional initializer
+    std::optional<JSExprRef> expr;
 };
 
 /// Statement is a base class that defines all possible JavaScript statements.

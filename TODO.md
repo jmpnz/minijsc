@@ -1,5 +1,9 @@
 # TODO
 
+[ ] Don't get bogged down in the details, focus on getting a working REPL/VM.
+    * Keep the language semantics close to Lox
+    * Skip protoypes, global objects, function expressions
+
 [ ] Check [1] to get an idea for how to do tagged pointers for array objects in JS
 
 [ ] Check WebKit blog (FTL, B3) for JIT architecture and implementation details.
