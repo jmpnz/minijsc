@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.2)
 
 project(minijsc LANGUAGES CXX)
 
+set(CMAKE_CPP_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 20)
 # Useful debug for the debug build
 add_compile_options(-g3 -fno-exceptions)

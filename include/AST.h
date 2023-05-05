@@ -1,9 +1,8 @@
 //===----------------------------------------------------------------------===//
 //
-// AST.h: This file implements declarations for the abstract syntax tree created
-// by the parser. The AST is tree of nodes, the nodes can be declarations,
-// statements and expressions.
-// To be consistent architecture wise we list a few rules around the nodes
+// AST.h: This file defines classes and interfaces for representing AST nodes.
+// There are three core AST nodes (declarations, expressions and statements).
+//
 // - Declarations are symbol assignments such as constants, variables
 //   or functions.
 // - Statements can be declarations, conditionals, loops or function returns.

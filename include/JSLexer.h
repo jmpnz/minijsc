@@ -1,3 +1,8 @@
+//===----------------------------------------------------------------------===//
+// JSLexer.h: This header defines the class and interface for the minijsc
+// lexer. The lexer supports the core keywords of ES5 and strict mode keywords
+// such as `let`.
+//===----------------------------------------------------------------------===//
 #ifndef JSLEXER_H
 #define JSLEXER_H
 

@@ -1,3 +1,10 @@
+//===----------------------------------------------------------------------===//
+//
+// Bytecode.h: Declaration and implementation of minijsc bytecode .
+//
+// This header defines the opcodes of the minijsc virtual machine bytecode
+// and the disassembler class used for disassembly during tracing and debugging
+//===----------------------------------------------------------------------===//
 #ifndef BYTECODE_H
 #define BYTECODE_H
 

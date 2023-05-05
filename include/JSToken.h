@@ -1,3 +1,7 @@
+//===----------------------------------------------------------------------===//
+// JSToken.h: This header defines the core enum used to represent JavaScript
+// tokens and a JSToken class used to represent individual tokens.
+//===----------------------------------------------------------------------===//
 #ifndef JSTOKEN_H
 #define JSTOKEN_H
 

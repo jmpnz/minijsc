@@ -1,3 +1,8 @@
+//===----------------------------------------------------------------------===//
+// JSValue.h: This header defines the class and interfaces used to represent
+// JavaScript primitive values, such as `null`, `undefined`, `number`, `string`
+// and `boolean`.
+//===----------------------------------------------------------------------===//
 #ifndef JSVALUE_H
 #define JSVALUE_H
 
@@ -36,6 +41,15 @@ enum class JSValueKind {
     String,
 };
 
+/// JSValue defines a virtual interface for representing all JavaScript values
+/// including primitives and compound literals and types.
+class JSValue {
+    public:
+    virtual ~JSValue() = default;
+
+    virtual auto getType() -> JSValueKind;
+};
+
 /// JSBasicValue class represents a JavaScript primitive value, primitives
 /// include numbers, booleans, strings and the undefined and null types.
 /// JSBasicValue is implemented using a variant around C++ primitive types
@@ -66,7 +80,7 @@ class JSBasicValue {
         : value(std::string(str)), type(JSValueKind::String) {}
 
     // Return the `JSType` of this value.
-    [[nodiscard]] auto getType() const -> JSValueKind { return type; }
+    [[nodiscard]] auto getType() -> JSValueKind { return type; }
 
     // Check if the value is undefined.
     [[nodiscard]] auto isUndefined() const -> bool {

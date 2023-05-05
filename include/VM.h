@@ -1,3 +1,7 @@
+//===----------------------------------------------------------------------===//
+// VM.h: This header defines the class and utilities used in the core virtual
+// machine for minijsc.
+//===----------------------------------------------------------------------===//
 #ifndef VM_H
 #define VM_H
 

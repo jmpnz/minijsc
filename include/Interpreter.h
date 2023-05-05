@@ -1,7 +1,7 @@
 //===----------------------------------------------------------------------===//
-// Interpreter.h: This file implements the baseline interpreter for minijsc
-// the interpter like the bytecode compiler are implemented using a visitor
-// patter.
+// Interpreter.h: This header defines the class and interface for the baseline
+// interpreter for minijsc. The interpreter is a REPL based interpreter with
+// an evaluate loop. Evaluation is done at the abstract syntax tree level.
 //===----------------------------------------------------------------------===//
 #ifndef INTERPRETER_H
 #define INTERPRETER_H

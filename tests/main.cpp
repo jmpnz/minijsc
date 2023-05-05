@@ -1,3 +1,4 @@
+#include "JSParser.h"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "fmt/color.h"
@@ -5,6 +6,7 @@
 #include "fmt/printf.h"
 
 #include "JSLexer.h"
+#include "JSParser.h"
 #include "JSToken.h"
 #include "JSValue.h"
 
@@ -268,6 +270,21 @@ TEST_CASE("testing the JSBasicValue class") {
 
     JSBasicValue undefined;
     CHECK(undefined.isUndefined() == true);
+}
+
+TEST_CASE("testing the parser") {
+    auto source = R"(
+        let sumArray = function(arr) {
+            let sum = 0;
+            while(i < arr.len) {
+                sum += arr[i];
+            }
+            return sum;
+        )";
+    auto lexer  = JSLexer(source);
+    auto tokens = lexer.scanTokens();
+    auto parser = JSParser(tokens);
+    CHECK(parser.match({JSTokenKind::Let, JSTokenKind::Identifier}) == true);
 }
 
 TEST_CASE("testing bytecode virtual machine") {
