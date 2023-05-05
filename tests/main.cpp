@@ -285,6 +285,7 @@ TEST_CASE("testing the parser") {
     auto tokens = lexer.scanTokens();
     auto parser = JSParser(tokens);
     CHECK(parser.match({JSTokenKind::Let, JSTokenKind::Identifier}) == true);
+    CHECK(parser.match({JSTokenKind::Function, JSTokenKind::Var}) == false);
 }
 
 TEST_CASE("testing bytecode virtual machine") {

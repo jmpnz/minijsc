@@ -32,14 +32,14 @@ class JSParser {
 
     // Match one of many of the expected tokens.
     auto match(const std::list<JSTokenKind>& expected) -> bool {
-        return std::any_of(expected.begin(), expected.end(),
-                           [this](JSTokenKind tok) {
-                               if (check(tok)) {
-                                   advance();
-                                   return true;
-                               }
-                               return false;
-                           });
+        return std::ranges::any_of(expected.begin(), expected.end(),
+                                   [this](JSTokenKind tok) {
+                                       if (check(tok)) {
+                                           advance();
+                                           return true;
+                                       }
+                                       return false;
+                                   });
     }
 
     // Advance consumes the current token and returns it.
