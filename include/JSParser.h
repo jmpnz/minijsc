@@ -1,5 +1,5 @@
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef JSPARSER_H
+#define JSPARSER_H
 
 #include "JSToken.h"
 

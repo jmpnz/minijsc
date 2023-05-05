@@ -1,5 +1,5 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef JSTOKEN_H
+#define JSTOKEN_H
 
 #include "JSValue.h"
 

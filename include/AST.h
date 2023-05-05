@@ -1,6 +1,6 @@
 //===----------------------------------------------------------------------===//
 //
-// This file implements declarations for the abstract syntax tree created
+// AST.h: This file implements declarations for the abstract syntax tree created
 // by the parser. The AST is tree of nodes, the nodes can be declarations,
 // statements and expressions.
 // To be consistent architecture wise we list a few rules around the nodes
@@ -18,30 +18,37 @@
 
 namespace minijsc {
 
-/// Abstract syntax tree node.
-class AstNode {
-    public:
-    /// Destructor.
-    virtual ~AstNode() = default;
-
-    /// Token literal for the node.
-    virtual auto tokenLiteral() -> JSToken = 0;
-};
+/// Forward declarations for the AST nodes.
+class JSExpr;
+class JSStmt;
+class JSBinExpr;
 
 /// Statement base interface.
 class JSStmt {
     public:
-    virtual ~JSStmt() = 0;
+    virtual ~JSStmt() = default;
 };
 
-/// Expression base interface.
+/// Expression base interface, the AST is built and evaluated using the visitor
+/// pattern. The base JSExpr type defines all possible JavaScript expressions
+/// each consumer of the ASTm defines the behavior of how a JSExpr is processed
+/// One example would be how the ASTPrinter, Interpreter and Compiler can all
+/// consume an AST which is a sequence of statements.
+/// When we call ASTPrinter.visitBinaryExpr(expr) the expression is printed
+/// to stdout.
+/// When we call Interpreter.visitBinaryExpr(expr) the expression is evaluated
+/// on the fly instead.
+/// And finally if we call Compiler.Compile(expr) the expression is compiled
+/// to bytecode.
 class JSExpr {
     public:
-    virtual ~JSExpr() = 0;
+    virtual auto visitBinaryExpr(JSBinExpr expr) -> JSBasicValue = 0;
+    virtual ~JSExpr()                                            = default;
 };
 
-// Aliases for references to JSExpr implementations.
+// Aliases for references to JSExpr and JSStmt implementations.
 using JSExprRef = std::unique_ptr<JSExpr>;
+using JSStmtRef = std::unique_ptr<JSStmt>;
 
 /// Binary expression implementation.
 class JSBinExpr : public JSExpr {

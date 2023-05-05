@@ -1,5 +1,5 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef JSLEXER_H
+#define JSLEXER_H
 
 #include "JSToken.h"
 
