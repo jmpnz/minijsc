@@ -568,6 +568,30 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
+    SUBCASE("test interpretering binary expressions (comparison/unequal") {
+        auto source      = "3 != 4;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == true);
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test interpretering binary expressions (comparison/equal_equal)") {
+        auto source      = "3 == 4;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == false);
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

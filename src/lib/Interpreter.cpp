@@ -39,6 +39,10 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
         return JSBoolean(lhs.getValue<JSNumber>() < rhs.getValue<JSNumber>());
     case JSTokenKind::LessEqual:
         return JSBoolean(lhs.getValue<JSNumber>() <= rhs.getValue<JSNumber>());
+    case JSTokenKind::BangEqual:
+        return JSBoolean(lhs.getValue<JSNumber>() != rhs.getValue<JSNumber>());
+    case JSTokenKind::EqualEqual:
+        return JSBoolean(lhs.getValue<JSNumber>() == rhs.getValue<JSNumber>());
     default:
         throw std::invalid_argument("Unknown operator");
     }
