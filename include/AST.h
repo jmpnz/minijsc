@@ -14,6 +14,7 @@
 #include <utility>
 
 #include "JSToken.h"
+#include "JSValue.h"
 
 namespace minijsc {
 
@@ -41,8 +42,8 @@ class JSStmt {
 /// to bytecode.
 class JSExpr {
     public:
-    virtual auto visitBinaryExpr(JSBinExpr expr) -> JSBasicValue = 0;
-    virtual ~JSExpr()                                            = default;
+    // virtual auto visitBinaryExpr(JSBinExpr expr) -> JSBasicValue = 0;
+    virtual ~JSExpr() = default;
 };
 
 // Aliases for references to JSExpr and JSStmt implementations.
@@ -51,6 +52,7 @@ using JSStmtRef = std::unique_ptr<JSStmt>;
 
 /// Binary expression implementation.
 class JSBinExpr : public JSExpr {
+    public:
     /// Binary expression constructor takes both sides of the expression
     /// and their operand.
     explicit JSBinExpr(JSExpr* left, JSToken binOp, JSExpr* right)
@@ -63,6 +65,16 @@ class JSBinExpr : public JSExpr {
     JSExprRef right;
     // Binary operator.
     JSToken binOp;
+};
+
+// Literal expression implementation.
+class JSLiteralExpr : public JSExpr {
+    public:
+    // Constructor takes a JSBasicValue.
+    explicit JSLiteralExpr(const JSBasicValue& value) : value(value) {}
+
+    private:
+    JSBasicValue value;
 };
 
 /// Variable declaration, in JavaScript a variable declaration creates

@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <list>
+#include <memory>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -68,10 +69,25 @@ class JSParser {
     auto previous() -> JSToken { return tokens.at(current - 1); }
 
     // Parse an expression.
-    auto parseExpression() -> JSExpr;
+    auto parseExpression() -> std::unique_ptr<JSExpr>;
 
     // Parse an equality expression.
-    auto parseEqualityExpr() -> JSExpr;
+    auto parseEqualityExpr() -> std::unique_ptr<JSExpr>;
+
+    // Parse a comparison expression.
+    auto parseCmpExpr() -> std::unique_ptr<JSExpr>;
+
+    // Parse a primary expression.
+    auto parsePrimaryExpr() -> std::unique_ptr<JSExpr>;
+
+    // Parse a unary expression.
+    auto parseUnaryExpr() -> std::unique_ptr<JSExpr>;
+
+    // Parse a factor expression.
+    auto parseFactorExpr() -> std::unique_ptr<JSExpr>;
+
+    // Parse a term expression.
+    auto parseTermExpr() -> std::unique_ptr<JSExpr>;
 
     private:
     // Tokens the parser is processing.
