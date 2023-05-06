@@ -25,6 +25,8 @@ class Interpreter : public Visitor {
         -> JSBasicValue override;
     auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
         -> JSBasicValue override;
+    auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
+        -> JSBasicValue override;
 };
 } // namespace minijsc
 

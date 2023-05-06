@@ -9,22 +9,43 @@ namespace minijsc {
 
 /// Interpreter visits literal expressions returning the wrapped value.
 auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-    -> minijsc::JSBasicValue {
+    -> JSBasicValue {
     return expr->getValue();
 }
 
 /// Interpreter visits binary expressions returning result of evaluation.
 auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-    -> minijsc::JSBasicValue {
-    auto lhs   = expr->getLeft();
-    auto rhs   = expr->getRight();
+    -> JSBasicValue {
+    auto lhs   = evaluate(expr->getLeft());
+    auto rhs   = evaluate(expr->getRight());
     auto binOp = expr->getOperator();
 
     switch (binOp.getKind()) {
     case JSTokenKind::Plus:
-        return JSBasicValue(3. + 489.);
+        return {lhs.getValue<JSNumber>() + rhs.getValue<JSNumber>()};
+    case JSTokenKind::Minus:
+        return {lhs.getValue<JSNumber>() - rhs.getValue<JSNumber>()};
+    case JSTokenKind::Star:
+        return {lhs.getValue<JSNumber>() * rhs.getValue<JSNumber>()};
+    case JSTokenKind::Slash:
+        return {lhs.getValue<JSNumber>() / rhs.getValue<JSNumber>()};
     default:
         throw std::invalid_argument("Unknown operator");
+    }
+}
+
+/// Interpreter visits unary expressions returning result of evaluation.
+auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
+    -> JSBasicValue {
+    auto rhs     = evaluate(expr->getRight());
+    auto unaryOp = expr->getOperator();
+    switch (unaryOp.getKind()) {
+    case JSTokenKind::Minus:
+        return {-rhs.getValue<JSNumber>()};
+    case JSTokenKind::Bang:
+        return {!rhs.getValue<JSBoolean>()};
+    default:
+        return {nullptr};
     }
 }
 

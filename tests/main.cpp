@@ -384,6 +384,42 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == JSBoolean(false));
         CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
     }
+    SUBCASE("test interpretering unary expressions (-1)") {
+        auto source      = "-1;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isNumber() == true);
+        CHECK(value.getValue<JSNumber>() == JSNumber(-1));
+        CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
+    }
+    SUBCASE("test interpretering unary expressions (!false)") {
+        auto source      = "!false;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
+    }
+    SUBCASE("test interpretering binary expressions (add)") {
+        auto source      = "1 + 3;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isNumber() == true);
+        CHECK(value.getValue<JSNumber>() == JSNumber(4));
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

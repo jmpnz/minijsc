@@ -23,6 +23,7 @@ namespace minijsc {
 class Expr;
 class JSBinExpr;
 class JSLiteralExpr;
+class JSUnaryExpr;
 
 struct Visitor {
     virtual ~Visitor() = default;
@@ -30,6 +31,8 @@ struct Visitor {
     virtual auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
         -> JSBasicValue = 0;
     virtual auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
+        -> JSBasicValue = 0;
+    virtual auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
         -> JSBasicValue = 0;
     // virtual auto visitCallExpr(Call expr) -> R         = 0;
     // virtual auto visitGetExpr(Get expr) -> R           = 0;
@@ -111,9 +114,10 @@ class JSBinExpr : public Expr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::BinaryExpr; }
 
-    auto accept(Visitor* /*visitor*/) -> JSBasicValue override {
-        fmt::print("JSBinExpr::accept\n");
-        return {nullptr};
+    auto accept(Visitor* visitor) -> JSBasicValue override {
+        fmt::print("JSBinaryExpr::accept\n");
+        return visitor->visitBinaryExpr(
+            std::static_pointer_cast<JSBinExpr>(shared_from_this()));
     }
 
     auto getLeft() -> std::shared_ptr<Expr> { return left; }
@@ -140,10 +144,15 @@ class JSUnaryExpr : public Expr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::UnaryExpr; }
 
-    auto accept(Visitor* /*visitor*/) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> JSBasicValue override {
         fmt::print("JSUnaryExpr::accept\n");
-        return {nullptr};
+        return visitor->visitUnaryExpr(
+            std::static_pointer_cast<JSUnaryExpr>(shared_from_this()));
     }
+
+    auto getRight() -> std::shared_ptr<Expr> { return right; }
+
+    auto getOperator() -> JSToken { return unaryOp; }
 
     private:
     // Unary operator.
