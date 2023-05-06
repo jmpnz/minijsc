@@ -1,3 +1,4 @@
+#include "AST.h"
 #include "JSParser.h"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
@@ -273,7 +274,8 @@ TEST_CASE("testing the JSBasicValue class") {
 }
 
 TEST_CASE("testing the parser") {
-    auto source = R"(
+    SUBCASE("testing the parser match") {
+        auto source = R"(
         let sumArray = function(arr) {
             let sum = 0;
             while(i < arr.len) {
@@ -281,11 +283,21 @@ TEST_CASE("testing the parser") {
             }
             return sum;
         )";
-    auto lexer  = JSLexer(source);
-    auto tokens = lexer.scanTokens();
-    auto parser = JSParser(tokens);
-    CHECK(parser.match({JSTokenKind::Let, JSTokenKind::Identifier}) == true);
-    CHECK(parser.match({JSTokenKind::Function, JSTokenKind::Var}) == false);
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(tokens);
+        CHECK(parser.match({JSTokenKind::Let, JSTokenKind::Identifier}) ==
+              true);
+        CHECK(parser.match({JSTokenKind::Function, JSTokenKind::Var}) == false);
+    }
+    SUBCASE("test parsing expressions") {
+        auto source = "true;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(tokens);
+        auto expr   = parser.parsePrimaryExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

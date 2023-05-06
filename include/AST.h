@@ -19,6 +19,13 @@
 
 namespace minijsc {
 
+// AST node kinds.
+enum class ASTNodeKind {
+    LiteralExpr,
+    BinaryExpr,
+    UnaryExpr,
+};
+
 template <typename R> struct Visitor {
     virtual ~Visitor() = default;
     // virtual auto visitAssignExpr(Assign expr) -> R     = 0;
@@ -40,6 +47,7 @@ template <typename R> class Expr {
     virtual ~Expr() = default;
 
     // virtual auto accept(Visitor<R>& visitor) -> R = 0;
+    virtual auto getKind() -> ASTNodeKind = 0;
 
     // Nested Expr classes here...
 };
@@ -83,6 +91,8 @@ class JSBinExpr : public Expr<JSBasicValue> {
     explicit JSBinExpr(Expr* left, JSToken binOp, Expr* right)
         : left(left), right(right), binOp(std::move(binOp)) {}
 
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::BinaryExpr; }
+
     private:
     // Left handside of the binary operation.
     std::unique_ptr<Expr> left;
@@ -99,6 +109,8 @@ class JSUnaryExpr : public Expr<JSBasicValue> {
     explicit JSUnaryExpr(JSToken unaryOp, Expr* right)
         : unaryOp(std::move(unaryOp)), right(right) {}
 
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::UnaryExpr; }
+
     private:
     // Unary operator.
     JSToken unaryOp;
@@ -111,6 +123,8 @@ class JSLiteralExpr : public Expr<JSBasicValue> {
     public:
     // Constructor takes a JSBasicValue.
     explicit JSLiteralExpr(const JSBasicValue& value) : value(value) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::LiteralExpr; }
 
     private:
     JSBasicValue value;
