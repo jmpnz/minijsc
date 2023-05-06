@@ -22,6 +22,7 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
 
     switch (binOp.getKind()) {
     case JSTokenKind::Plus:
+        // TODO: handle upcasting of string/number lhs or rhs.
         return {lhs.getValue<JSNumber>() + rhs.getValue<JSNumber>()};
     case JSTokenKind::Minus:
         return {lhs.getValue<JSNumber>() - rhs.getValue<JSNumber>()};
@@ -29,6 +30,15 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
         return {lhs.getValue<JSNumber>() * rhs.getValue<JSNumber>()};
     case JSTokenKind::Slash:
         return {lhs.getValue<JSNumber>() / rhs.getValue<JSNumber>()};
+    // Comparison operations.
+    case JSTokenKind::Greater:
+        return JSBoolean(lhs.getValue<JSNumber>() > rhs.getValue<JSNumber>());
+    case JSTokenKind::GreaterEqual:
+        return JSBoolean(lhs.getValue<JSNumber>() >= rhs.getValue<JSNumber>());
+    case JSTokenKind::Less:
+        return JSBoolean(lhs.getValue<JSNumber>() < rhs.getValue<JSNumber>());
+    case JSTokenKind::LessEqual:
+        return JSBoolean(lhs.getValue<JSNumber>() <= rhs.getValue<JSNumber>());
     default:
         throw std::invalid_argument("Unknown operator");
     }
