@@ -12,12 +12,12 @@
 
 namespace minijsc {
 
-auto JSParser::parseExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
+auto JSParser::parseExpr() -> std::shared_ptr<Expr> {
     fmt::print("JSParser::parseExpr\n");
     return parseEqualityExpr();
 }
 
-auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
+auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr> {
     fmt::print("JSParser::parsePrimaryExpr\n");
     if (match(JSTokenKind::False)) {
         return std::make_shared<JSLiteralExpr>(JSBasicValue(false));
@@ -47,7 +47,7 @@ auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
     return nullptr;
 }
 
-auto JSParser::parseComparisonExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
+auto JSParser::parseComparisonExpr() -> std::shared_ptr<Expr> {
     fmt::print("JSParser::parseComparisonExpr\n");
     auto expr = parseTermExpr();
 
@@ -60,7 +60,7 @@ auto JSParser::parseComparisonExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
     return expr;
 }
 
-auto JSParser::parseTermExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
+auto JSParser::parseTermExpr() -> std::shared_ptr<Expr> {
     fmt::print("JSParser::parseTermExpr\n");
     auto expr = parseFactorExpr();
 
@@ -73,7 +73,7 @@ auto JSParser::parseTermExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
     return expr;
 }
 
-auto JSParser::parseFactorExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
+auto JSParser::parseFactorExpr() -> std::shared_ptr<Expr> {
     fmt::print("JSParser::parseFactorExpr\n");
     auto expr = parseUnaryExpr();
 
@@ -86,8 +86,8 @@ auto JSParser::parseFactorExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
     return expr;
 }
 
-auto JSParser::parseUnaryExpr()              // NOLINT
-    -> std::shared_ptr<Expr<JSBasicValue>> { // NOLINT
+auto JSParser::parseUnaryExpr() // NOLINT
+    -> std::shared_ptr<Expr> {  // NOLINT
     fmt::print("JSParser::parseUnaryExpr\n");
     if (match({JSTokenKind::Bang, JSTokenKind::Minus})) {
         auto unaryOp = previous();
@@ -98,7 +98,7 @@ auto JSParser::parseUnaryExpr()              // NOLINT
     return parsePrimaryExpr();
 }
 
-auto JSParser::parseEqualityExpr() -> std::shared_ptr<Expr<JSBasicValue>> {
+auto JSParser::parseEqualityExpr() -> std::shared_ptr<Expr> {
     fmt::print("JSParser::parseEqualityExpr\n");
     auto expr = parseComparisonExpr();
 

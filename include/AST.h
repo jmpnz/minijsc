@@ -11,6 +11,7 @@
 #ifndef AST_H
 #define AST_H
 #include <cstddef>
+#include <ios>
 #include <memory>
 #include <utility>
 
@@ -19,22 +20,20 @@
 
 namespace minijsc {
 
-// AST node kinds.
-enum class ASTNodeKind {
-    LiteralExpr,
-    BinaryExpr,
-    UnaryExpr,
-    GroupingExpr,
-};
+class Expr;
+class JSBinExpr;
+class JSLiteralExpr;
 
-template <typename R> struct Visitor {
+struct Visitor {
     virtual ~Visitor() = default;
     // virtual auto visitAssignExpr(Assign expr) -> R     = 0;
-    // virtual auto visitBinaryExpr(Binary expr) -> R     = 0;
+    virtual auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
+        -> JSBasicValue = 0;
+    virtual auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
+        -> JSBasicValue = 0;
     // virtual auto visitCallExpr(Call expr) -> R         = 0;
     // virtual auto visitGetExpr(Get expr) -> R           = 0;
     // virtual auto visitGroupingExpr(Grouping expr) -> R = 0;
-    // virtual auto visitLiteralExpr(Literal expr) -> R   = 0;
     // virtual auto visitLogicalExpr(Logical expr) -> R   = 0;
     // virtual auto visitSetExpr(Set expr) -> R           = 0;
     // virtual auto visitSuperExpr(Super expr) -> R       = 0;
@@ -43,13 +42,27 @@ template <typename R> struct Visitor {
     // virtual auto visitVariableExpr(Variable expr) -> R = 0;
 };
 
-template <typename R>
-class Expr : public std::enable_shared_from_this<Expr<R>> {
-    public:
-    Expr()          = default;
-    virtual ~Expr() = default;
+/// AST node kinds.
+enum class ASTNodeKind {
+    LiteralExpr,
+    BinaryExpr,
+    UnaryExpr,
+    GroupingExpr,
+};
 
-    // virtual auto accept(Visitor<R>& visitor) -> R = 0;
+/// AST node class.
+class ASTNode {
+    public:
+    ASTNode()                                             = default;
+    virtual ~ASTNode()                                    = default;
+    virtual auto accept(Visitor* visitor) -> JSBasicValue = 0;
+};
+
+class Expr : public ASTNode, public std::enable_shared_from_this<Expr> {
+    public:
+    Expr()           = default;
+    ~Expr() override = default;
+
     virtual auto getKind() -> ASTNodeKind = 0;
 
     // Nested Expr classes here...
@@ -87,7 +100,7 @@ class Expr : public std::enable_shared_from_this<Expr<R>> {
 // };
 
 /// Binary expression implementation.
-class JSBinExpr : public Expr<JSBasicValue> {
+class JSBinExpr : public Expr {
     public:
     /// Binary expression constructor takes both sides of the expression
     /// and their operand.
@@ -97,6 +110,17 @@ class JSBinExpr : public Expr<JSBasicValue> {
           binOp(std::move(binOp)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::BinaryExpr; }
+
+    auto accept(Visitor* /*visitor*/) -> JSBasicValue override {
+        fmt::print("JSBinExpr::accept\n");
+        return {nullptr};
+    }
+
+    auto getLeft() -> std::shared_ptr<Expr> { return left; }
+
+    auto getRight() -> std::shared_ptr<Expr> { return right; }
+
+    auto getOperator() -> JSToken { return binOp; }
 
     private:
     // Left handside of the binary operation.
@@ -108,13 +132,18 @@ class JSBinExpr : public Expr<JSBasicValue> {
 };
 
 // Unary expression implementation.
-class JSUnaryExpr : public Expr<JSBasicValue> {
+class JSUnaryExpr : public Expr {
     public:
     // Unary expression constructor.
     explicit JSUnaryExpr(JSToken unaryOp, std::shared_ptr<Expr> right)
         : unaryOp(std::move(unaryOp)), right(std::move(right)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::UnaryExpr; }
+
+    auto accept(Visitor* /*visitor*/) -> JSBasicValue override {
+        fmt::print("JSUnaryExpr::accept\n");
+        return {nullptr};
+    }
 
     private:
     // Unary operator.
@@ -124,7 +153,7 @@ class JSUnaryExpr : public Expr<JSBasicValue> {
 };
 
 // Literal expression implementation.
-class JSLiteralExpr : public Expr<JSBasicValue> {
+class JSLiteralExpr : public Expr {
     public:
     // Constructor takes a JSBasicValue.
     explicit JSLiteralExpr(JSBasicValue value)
@@ -132,17 +161,30 @@ class JSLiteralExpr : public Expr<JSBasicValue> {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::LiteralExpr; }
 
+    auto accept(Visitor* visitor) -> JSBasicValue override {
+        fmt::print("JSLiteralExpr::accept\n");
+        return visitor->visitLiteralExpr(
+            std::static_pointer_cast<JSLiteralExpr>(shared_from_this()));
+    }
+
+    auto getValue() -> JSBasicValue { return *value; }
+
     private:
     std::shared_ptr<JSBasicValue> value;
 };
 
 // Grouping expression implementation.
-class JSGroupingExpr : public Expr<JSBasicValue> {
+class JSGroupingExpr : public Expr {
     public:
     explicit JSGroupingExpr(std::shared_ptr<Expr> expression)
         : expr(std::move(expression)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::GroupingExpr; }
+
+    auto accept(Visitor* /*visitor*/) -> JSBasicValue override {
+        fmt::print("JSGroupingExpr::accept\n");
+        return {nullptr};
+    }
 
     private:
     std::shared_ptr<Expr> expr;

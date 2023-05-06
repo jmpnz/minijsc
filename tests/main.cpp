@@ -1,4 +1,5 @@
 #include "AST.h"
+#include "Interpreter.h"
 #include "JSParser.h"
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
@@ -355,6 +356,33 @@ TEST_CASE("testing the parser") {
         auto parser = JSParser(std::move(tokens));
         auto expr   = parser.parseExpr();
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+}
+
+TEST_CASE("testing interpreter evaluate") {
+    SUBCASE("test interpretering boolean literal(true)") {
+        auto source      = "true;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
+    }
+    SUBCASE("test interpretering boolean literal(false)") {
+        auto source      = "false;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == JSBoolean(false));
+        CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
     }
 }
 

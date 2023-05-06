@@ -87,25 +87,25 @@ class JSParser {
     auto previous() -> JSToken { return tokens.at(current - 1); }
 
     // Parse an expression.
-    auto parseExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parseExpr() -> std::shared_ptr<Expr>;
 
     // Parse equality expressions.
-    auto parseEqualityExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parseEqualityExpr() -> std::shared_ptr<Expr>;
 
     // Parse a primary expression.
-    auto parsePrimaryExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parsePrimaryExpr() -> std::shared_ptr<Expr>;
 
     // Parse a unary expression.
-    auto parseUnaryExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parseUnaryExpr() -> std::shared_ptr<Expr>;
 
     // Parse a factor expression.
-    auto parseFactorExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parseFactorExpr() -> std::shared_ptr<Expr>;
 
     // Parse a term expression.
-    auto parseTermExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parseTermExpr() -> std::shared_ptr<Expr>;
 
     // Parse comparison expression.
-    auto parseComparisonExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+    auto parseComparisonExpr() -> std::shared_ptr<Expr>;
 
     private:
     // Tokens the parser is processing.

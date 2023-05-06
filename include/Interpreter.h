@@ -7,16 +7,24 @@
 #define INTERPRETER_H
 
 #include "AST.h"
+#include "JSValue.h"
+#include <memory>
 
 namespace minijsc {
 
 /// Interpreter implements runtime evaluation of the abstract syntax tree.
-class Interpreter {
+class Interpreter : public Visitor {
+    public:
     /// Default constructor.
-    explicit Interpreter() = default;
+    explicit Interpreter()  = default;
+    ~Interpreter() override = default;
 
-    // Interpret an AST node.
-    auto interpret(JSExpr* expr) -> void;
+    auto evaluate(std::shared_ptr<Expr> expr) -> JSBasicValue;
+
+    auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
+        -> JSBasicValue override;
+    auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
+        -> JSBasicValue override;
 };
 } // namespace minijsc
 

@@ -3,6 +3,7 @@ set(minijsc_lib_src
     JSToken.cpp
     JSParser.cpp
     Bytecode.cpp
+    Interpreter.cpp
     VM.cpp
 )
 
