@@ -49,6 +49,12 @@ auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
     }
 }
 
+/// Interpreter visits grouping expression evaluating the grouped expression.
+auto Interpreter::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
+    -> JSBasicValue {
+    return evaluate(expr->getExpr());
+}
+
 /// Interpreter core evaluation loop.
 auto Interpreter::evaluate(std::shared_ptr<Expr> expr) -> JSBasicValue {
     return expr->accept(this);

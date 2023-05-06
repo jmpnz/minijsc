@@ -24,6 +24,7 @@ class Expr;
 class JSBinExpr;
 class JSLiteralExpr;
 class JSUnaryExpr;
+class JSGroupingExpr;
 
 struct Visitor {
     virtual ~Visitor() = default;
@@ -34,9 +35,10 @@ struct Visitor {
         -> JSBasicValue = 0;
     virtual auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
         -> JSBasicValue = 0;
+    virtual auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
+        -> JSBasicValue = 0;
     // virtual auto visitCallExpr(Call expr) -> R         = 0;
     // virtual auto visitGetExpr(Get expr) -> R           = 0;
-    // virtual auto visitGroupingExpr(Grouping expr) -> R = 0;
     // virtual auto visitLogicalExpr(Logical expr) -> R   = 0;
     // virtual auto visitSetExpr(Set expr) -> R           = 0;
     // virtual auto visitSuperExpr(Super expr) -> R       = 0;
@@ -190,10 +192,13 @@ class JSGroupingExpr : public Expr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::GroupingExpr; }
 
-    auto accept(Visitor* /*visitor*/) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> JSBasicValue override {
         fmt::print("JSGroupingExpr::accept\n");
-        return {nullptr};
+        return visitor->visitGroupingExpr(
+            std::static_pointer_cast<JSGroupingExpr>(shared_from_this()));
     }
+
+    auto getExpr() -> std::shared_ptr<Expr> { return expr; }
 
     private:
     std::shared_ptr<Expr> expr;
