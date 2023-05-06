@@ -19,6 +19,7 @@ class Interpreter : public Visitor {
     explicit Interpreter()  = default;
     ~Interpreter() override = default;
 
+    /// Core interpreter evaluation loop.
     auto evaluate(std::shared_ptr<Expr> expr) -> JSBasicValue;
 
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
@@ -29,7 +30,34 @@ class Interpreter : public Visitor {
         -> JSBasicValue override;
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue override;
+
+    /// Check truthiness of a value.
+    static auto isTruthy(JSBasicValue value) -> bool {
+        switch (value.getType()) {
+        case JSValueKind::Boolean: {
+            return value.getValue<JSBoolean>();
+        }
+        case JSValueKind::Number: {
+            return value.getValue<JSNumber>() != 0 &&
+                   value.getValue<JSNumber>() != 0.0;
+        }
+        case JSValueKind::Undefined:
+            return false;
+        case JSValueKind::String:
+            if (value.getValue<JSString>().empty()) {
+                return false;
+            }
+        case JSValueKind::Null:
+            return false;
+
+        default:
+            return true;
+        }
+
+        return true;
+    }
 };
+
 } // namespace minijsc
 
 #endif

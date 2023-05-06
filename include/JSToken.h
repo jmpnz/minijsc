@@ -89,6 +89,7 @@ enum class JSTokenKind {
     True,
     False,
     Null,
+    Undefined,
     Void,
 
     // End of file.

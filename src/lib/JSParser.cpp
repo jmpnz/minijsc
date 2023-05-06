@@ -4,6 +4,7 @@
 #include "JSValue.h"
 #include "fmt/core.h"
 
+#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <memory>
@@ -28,7 +29,8 @@ auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr> {
     if (match(JSTokenKind::Null)) {
         return std::make_shared<JSLiteralExpr>(JSBasicValue(nullptr));
     }
-    if (match({JSTokenKind::Numeric, JSTokenKind::String})) {
+    if (match({JSTokenKind::Numeric, JSTokenKind::String,
+               JSTokenKind::Undefined, JSTokenKind::Null})) {
         fmt::print("JSParser::match(Numeric)\n");
 
         auto literal = previous().getLiteral().getValue<double>();
@@ -90,8 +92,14 @@ auto JSParser::parseUnaryExpr() // NOLINT
     -> std::shared_ptr<Expr> {  // NOLINT
     fmt::print("JSParser::parseUnaryExpr\n");
     if (match({JSTokenKind::Bang, JSTokenKind::Minus})) {
+        fmt::print("JSParser::match(Bang, Minus)\n");
         auto unaryOp = previous();
-        auto right   = parseUnaryExpr();
+        assert(unaryOp.getKind() == JSTokenKind::Bang ||
+               unaryOp.getKind() == JSTokenKind::Minus);
+        fmt::print("Token : {}\n", unaryOp.getLexeme());
+        auto right = parseUnaryExpr();
+        fmt::print("Right : {}\n",
+                   right->getKind() == ASTNodeKind::LiteralExpr);
         return std::make_shared<JSUnaryExpr>(unaryOp, right);
     }
 

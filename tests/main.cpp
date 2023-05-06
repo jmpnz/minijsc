@@ -396,6 +396,67 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(-1));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
+    SUBCASE("test interpretering unary expressions (truthy/undefined)") {
+        auto source      = "!undefined;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
+    }
+    SUBCASE("test interpretering unary expressions (truthy/null)") {
+        auto source      = "!null;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        fmt::print("test interpret undefined\n");
+        auto value = interpreter.evaluate(expr);
+        CHECK(value.isBoolean() == true);
+        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
+    }
+    SUBCASE("test interpretering binary expressions (add)") {
+        auto source      = "1 + 3;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isNumber() == true);
+        CHECK(value.getValue<JSNumber>() == JSNumber(4));
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test interpretering grouped expressions (add/mul)") {
+        auto source      = "(1 + 3) * 5;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isNumber() == true);
+        CHECK(value.getValue<JSNumber>() == JSNumber(20));
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test interpretering grouped expressions (mul/add)") {
+        auto source      = "(3 * 5) + 1;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto expr        = parser.parseExpr();
+        auto interpreter = Interpreter();
+        auto value       = interpreter.evaluate(expr);
+        CHECK(value.isNumber() == true);
+        CHECK(value.getValue<JSNumber>() == JSNumber(16));
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
     SUBCASE("test interpretering unary expressions (!false)") {
         auto source      = "!false;";
         auto lexer       = JSLexer(source);

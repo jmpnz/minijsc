@@ -59,6 +59,7 @@ static std::unordered_map<std::string, JSTokenKind> jsKeywords = {
     {"true", JSTokenKind::True},
     {"false", JSTokenKind::False},
     // Null literal.
+    {"undefined", JSTokenKind::Undefined},
     {"null", JSTokenKind::Null},
 };
 

@@ -43,8 +43,10 @@ auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
     case JSTokenKind::Minus:
         return {-rhs.getValue<JSNumber>()};
     case JSTokenKind::Bang:
-        return {!rhs.getValue<JSBoolean>()};
+        fmt::print("Unary/!/");
+        return {!isTruthy(rhs)};
     default:
+        fmt::print("visitUnaryExpr::nullPtr");
         return {nullptr};
     }
 }
