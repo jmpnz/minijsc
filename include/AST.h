@@ -11,6 +11,7 @@
 #ifndef AST_H
 #define AST_H
 #include <cstddef>
+#include <memory>
 #include <utility>
 
 #include "JSToken.h"
@@ -18,16 +19,43 @@
 
 namespace minijsc {
 
-/// Forward declarations for the AST nodes.
-class JSExpr;
-class JSStmt;
-class JSBinExpr;
+template <typename R> struct Visitor {
+    virtual ~Visitor() = default;
+    // virtual auto visitAssignExpr(Assign expr) -> R     = 0;
+    // virtual auto visitBinaryExpr(Binary expr) -> R     = 0;
+    // virtual auto visitCallExpr(Call expr) -> R         = 0;
+    // virtual auto visitGetExpr(Get expr) -> R           = 0;
+    // virtual auto visitGroupingExpr(Grouping expr) -> R = 0;
+    // virtual auto visitLiteralExpr(Literal expr) -> R   = 0;
+    // virtual auto visitLogicalExpr(Logical expr) -> R   = 0;
+    // virtual auto visitSetExpr(Set expr) -> R           = 0;
+    // virtual auto visitSuperExpr(Super expr) -> R       = 0;
+    // virtual auto visitThisExpr(This expr) -> R         = 0;
+    // virtual auto visitUnaryExpr(Unary expr) -> R       = 0;
+    // virtual auto visitVariableExpr(Variable expr) -> R = 0;
+};
+
+template <typename R> class Expr {
+    public:
+    virtual ~Expr() = default;
+
+    // virtual auto accept(Visitor<R>& visitor) -> R = 0;
+
+    // Nested Expr classes here...
+};
+
+/// ASTVisitor defines an interface for a visitor pattern.
+// template <typename T> class ASTVisitor {
+//    public:
+//    virtual ~ASTVisitor()       = default;
+//   auto visitBinaryExpr() -> T = 0;
+// };
 
 /// Statement base interface.
-class JSStmt {
-    public:
-    virtual ~JSStmt() = default;
-};
+// class JSStmt {
+//    public:
+//    virtual ~JSStmt() = default;
+// };
 
 /// Expression base interface, the AST is built and evaluated using the visitor
 /// pattern. The base JSExpr type defines all possible JavaScript expressions
@@ -40,35 +68,46 @@ class JSStmt {
 /// on the fly instead.
 /// And finally if we call Compiler.Compile(expr) the expression is compiled
 /// to bytecode.
-class JSExpr {
-    public:
-    // virtual auto visitBinaryExpr(JSBinExpr expr) -> JSBasicValue = 0;
-    virtual ~JSExpr() = default;
-};
-
-// Aliases for references to JSExpr and JSStmt implementations.
-using JSExprRef = std::unique_ptr<JSExpr>;
-using JSStmtRef = std::unique_ptr<JSStmt>;
+// template <typename T> class JSExpr {
+//     public:
+//     // virtual auto visitBinaryExpr(JSBinExpr expr) -> JSBasicValue = 0;
+//     virtual ~JSExpr()                                = default;
+//     virtual auto accept(ASTVisitor<T>* visitor) -> T = 0;
+// };
 
 /// Binary expression implementation.
-class JSBinExpr : public JSExpr {
+class JSBinExpr : public Expr<JSBasicValue> {
     public:
     /// Binary expression constructor takes both sides of the expression
     /// and their operand.
-    explicit JSBinExpr(JSExpr* left, JSToken binOp, JSExpr* right)
+    explicit JSBinExpr(Expr* left, JSToken binOp, Expr* right)
         : left(left), right(right), binOp(std::move(binOp)) {}
 
     private:
     // Left handside of the binary operation.
-    JSExprRef left;
+    std::unique_ptr<Expr> left;
     // Right handside of the binary operation.
-    JSExprRef right;
+    std::unique_ptr<Expr> right;
     // Binary operator.
     JSToken binOp;
 };
 
+// Unary expression implementation.
+class JSUnaryExpr : public Expr<JSBasicValue> {
+    public:
+    // Unary expression constructor.
+    explicit JSUnaryExpr(JSToken unaryOp, Expr* right)
+        : unaryOp(std::move(unaryOp)), right(right) {}
+
+    private:
+    // Unary operator.
+    JSToken unaryOp;
+    // Right handside of the unary expression.
+    std::unique_ptr<Expr> right;
+};
+
 // Literal expression implementation.
-class JSLiteralExpr : public JSExpr {
+class JSLiteralExpr : public Expr<JSBasicValue> {
     public:
     // Constructor takes a JSBasicValue.
     explicit JSLiteralExpr(const JSBasicValue& value) : value(value) {}
@@ -88,17 +127,6 @@ class JSLiteralExpr : public JSExpr {
 /// `var a;` : `a` is undefined.
 /// `var a = (5 * 3 / 8) + "bob" : `a` is assigned an expression.
 /// `var a = function(a,b) { return a;}` : `a` is a binding to a function.
-class JSVariableDecl {
-    public:
-    /// Constructor with an identifier token.
-    explicit JSVariableDecl(JSToken token) : name(std::move(token)) {}
-
-    private:
-    /// Identifier associated to the variable declaration.
-    JSToken name;
-    /// Optional initializer
-    std::optional<JSExprRef> expr;
-};
 
 /// Statement is a base class that defines all possible JavaScript statements.
 /// BlockStatement for basic blocks.

@@ -7,12 +7,14 @@
 
 #include "AST.h"
 #include "JSToken.h"
+#include "JSValue.h"
 
 #include <algorithm>
 #include <cstddef>
 #include <list>
 #include <memory>
 #include <ranges>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -68,26 +70,23 @@ class JSParser {
     // Return the most recently consumed token.
     auto previous() -> JSToken { return tokens.at(current - 1); }
 
-    // Parse an expression.
-    auto parseExpression() -> std::unique_ptr<JSExpr>;
-
-    // Parse an equality expression.
-    auto parseEqualityExpr() -> std::unique_ptr<JSExpr>;
-
-    // Parse a comparison expression.
-    auto parseCmpExpr() -> std::unique_ptr<JSExpr>;
+    // Parse equality expressions.
+    auto parseEqualityExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
 
     // Parse a primary expression.
-    auto parsePrimaryExpr() -> std::unique_ptr<JSExpr>;
+    auto parsePrimaryExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
 
     // Parse a unary expression.
-    auto parseUnaryExpr() -> std::unique_ptr<JSExpr>;
+    auto parseUnaryExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
 
     // Parse a factor expression.
-    auto parseFactorExpr() -> std::unique_ptr<JSExpr>;
+    auto parseFactorExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
 
     // Parse a term expression.
-    auto parseTermExpr() -> std::unique_ptr<JSExpr>;
+    auto parseTermExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+
+    // Parse comparison expression.
+    auto parseComparisonExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
 
     private:
     // Tokens the parser is processing.
