@@ -8,12 +8,14 @@
 #include "AST.h"
 #include "JSToken.h"
 #include "JSValue.h"
+#include "fmt/core.h"
 
 #include <algorithm>
 #include <cstddef>
 #include <list>
 #include <memory>
 #include <ranges>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -30,7 +32,11 @@ class JSParser {
 
     // Match the next token against what we expect.
     auto match(const JSTokenKind& expected) -> bool {
-        return tokens.at(current).getKind() == expected;
+        if (tokens.at(current).getKind() == expected) {
+            advance();
+            return true;
+        }
+        return false;
     }
 
     // Match one of many of the expected tokens.
@@ -61,6 +67,16 @@ class JSParser {
         return peek().getKind() == kind;
     }
 
+    // Consume checks if the passed token matches, if it does
+    // it advances to the next token.
+    auto consume(const JSTokenKind& kind, std::string message) -> JSToken {
+        if (check(kind)) {
+            return advance();
+        }
+        fmt::print("{}", message);
+        throw std::invalid_argument(message);
+    }
+
     // Check if we reached the end.
     auto isAtEnd() -> bool { return peek().getKind() == JSTokenKind::Eof; }
 
@@ -70,23 +86,26 @@ class JSParser {
     // Return the most recently consumed token.
     auto previous() -> JSToken { return tokens.at(current - 1); }
 
+    // Parse an expression.
+    auto parseExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
+
     // Parse equality expressions.
-    auto parseEqualityExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+    auto parseEqualityExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
 
     // Parse a primary expression.
-    auto parsePrimaryExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+    auto parsePrimaryExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
 
     // Parse a unary expression.
-    auto parseUnaryExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+    auto parseUnaryExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
 
     // Parse a factor expression.
-    auto parseFactorExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+    auto parseFactorExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
 
     // Parse a term expression.
-    auto parseTermExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+    auto parseTermExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
 
     // Parse comparison expression.
-    auto parseComparisonExpr() -> std::unique_ptr<Expr<JSBasicValue>>;
+    auto parseComparisonExpr() -> std::shared_ptr<Expr<JSBasicValue>>;
 
     private:
     // Tokens the parser is processing.

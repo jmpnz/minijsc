@@ -290,13 +290,71 @@ TEST_CASE("testing the parser") {
               true);
         CHECK(parser.match({JSTokenKind::Function, JSTokenKind::Var}) == false);
     }
-    SUBCASE("test parsing expressions") {
+    SUBCASE("test parsing expressions/literals(true)") {
         auto source = "true;";
         auto lexer  = JSLexer(source);
         auto tokens = lexer.scanTokens();
         auto parser = JSParser(tokens);
         auto expr   = parser.parsePrimaryExpr();
         CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
+    }
+    SUBCASE("test parsing expressions/comparison(not equal)") {
+        auto source = "1 != 2;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test parsing expressions/comparison(equal)") {
+        auto source = "2 == 2;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test parsing expressions/term(plus)") {
+        auto source = "1 + 2;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test parsing expressions/factor(star)") {
+        auto source = "1 + 2 * 3;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
+    }
+    SUBCASE("test parsing expressions/grouping(comparison)") {
+        auto source = "(4 == 2);";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::GroupingExpr);
+    }
+    SUBCASE("test parsing expressions/comparison(grouping)") {
+        auto source = "3 == (1 + 2);";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+
+        std::vector<JSTokenKind> expected = {
+            JSTokenKind::Numeric, JSTokenKind::EqualEqual, JSTokenKind::LParen,
+            JSTokenKind::Numeric, JSTokenKind::Plus,       JSTokenKind::Numeric,
+            JSTokenKind::RParen,  JSTokenKind::Semicolon,  JSTokenKind::Eof,
+        };
+
+        for (size_t i = 0; i < tokens.size(); i++) {
+            CHECK(tokens[i].getKind() == expected[i]);
+        }
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
 }
 

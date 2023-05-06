@@ -28,46 +28,46 @@ auto VM::run() -> VMResult {
             // in the constants pool.
             auto offset = fetch();
             //   fmt::print("Next OPCode : {}\n", (int)offset);
-            JSBasicValue value = ctx->loadConstant((size_t)offset);
+            JSBasicValue const value = ctx->loadConstant((size_t)offset);
             //  fmt::print(stdout, "JSBasicValue: {}\n", value.toString());
             push(value);
             break;
         }
         case OPCode::Negate: {
             // Pop value from the stack and negate it.
-            JSBasicValue value = pop();
+            JSBasicValue const value = pop();
             push(JSBasicValue(-value.getValue<JSNumber>()));
             break;
         }
         case OPCode::Add: {
-            JSBasicValue rhs = pop();
-            JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue const rhs = pop();
+            JSBasicValue const lhs = pop();
+            JSBasicValue const sum =
                 lhs.getValue<JSNumber>() + rhs.getValue<JSNumber>();
             push(sum);
             break;
         }
         case OPCode::Sub: {
-            JSBasicValue rhs = pop();
-            JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue const rhs = pop();
+            JSBasicValue const lhs = pop();
+            JSBasicValue const sum =
                 lhs.getValue<JSNumber>() - rhs.getValue<JSNumber>();
             push(sum);
             break;
         }
         case OPCode::Mul: {
-            JSBasicValue rhs = pop();
-            JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue const rhs = pop();
+            JSBasicValue const lhs = pop();
+            JSBasicValue const sum =
                 lhs.getValue<JSNumber>() * rhs.getValue<JSNumber>();
             push(sum);
             break;
         }
 
         case OPCode::Div: {
-            JSBasicValue rhs = pop();
-            JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue const rhs = pop();
+            JSBasicValue const lhs = pop();
+            JSBasicValue const sum =
                 lhs.getValue<JSNumber>() / rhs.getValue<JSNumber>();
             push(sum);
             break;

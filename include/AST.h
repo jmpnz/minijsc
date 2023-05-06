@@ -24,6 +24,7 @@ enum class ASTNodeKind {
     LiteralExpr,
     BinaryExpr,
     UnaryExpr,
+    GroupingExpr,
 };
 
 template <typename R> struct Visitor {
@@ -42,8 +43,10 @@ template <typename R> struct Visitor {
     // virtual auto visitVariableExpr(Variable expr) -> R = 0;
 };
 
-template <typename R> class Expr {
+template <typename R>
+class Expr : public std::enable_shared_from_this<Expr<R>> {
     public:
+    Expr()          = default;
     virtual ~Expr() = default;
 
     // virtual auto accept(Visitor<R>& visitor) -> R = 0;
@@ -88,16 +91,18 @@ class JSBinExpr : public Expr<JSBasicValue> {
     public:
     /// Binary expression constructor takes both sides of the expression
     /// and their operand.
-    explicit JSBinExpr(Expr* left, JSToken binOp, Expr* right)
-        : left(left), right(right), binOp(std::move(binOp)) {}
+    explicit JSBinExpr(std::shared_ptr<Expr> left, JSToken binOp,
+                       std::shared_ptr<Expr> right)
+        : left(std::move(left)), right(std::move(right)),
+          binOp(std::move(binOp)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::BinaryExpr; }
 
     private:
     // Left handside of the binary operation.
-    std::unique_ptr<Expr> left;
+    std::shared_ptr<Expr> left;
     // Right handside of the binary operation.
-    std::unique_ptr<Expr> right;
+    std::shared_ptr<Expr> right;
     // Binary operator.
     JSToken binOp;
 };
@@ -106,8 +111,8 @@ class JSBinExpr : public Expr<JSBasicValue> {
 class JSUnaryExpr : public Expr<JSBasicValue> {
     public:
     // Unary expression constructor.
-    explicit JSUnaryExpr(JSToken unaryOp, Expr* right)
-        : unaryOp(std::move(unaryOp)), right(right) {}
+    explicit JSUnaryExpr(JSToken unaryOp, std::shared_ptr<Expr> right)
+        : unaryOp(std::move(unaryOp)), right(std::move(right)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::UnaryExpr; }
 
@@ -115,19 +120,32 @@ class JSUnaryExpr : public Expr<JSBasicValue> {
     // Unary operator.
     JSToken unaryOp;
     // Right handside of the unary expression.
-    std::unique_ptr<Expr> right;
+    std::shared_ptr<Expr> right;
 };
 
 // Literal expression implementation.
 class JSLiteralExpr : public Expr<JSBasicValue> {
     public:
     // Constructor takes a JSBasicValue.
-    explicit JSLiteralExpr(const JSBasicValue& value) : value(value) {}
+    explicit JSLiteralExpr(JSBasicValue value)
+        : value(std::make_shared<JSBasicValue>(std::move(value))) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::LiteralExpr; }
 
     private:
-    JSBasicValue value;
+    std::shared_ptr<JSBasicValue> value;
+};
+
+// Grouping expression implementation.
+class JSGroupingExpr : public Expr<JSBasicValue> {
+    public:
+    explicit JSGroupingExpr(std::shared_ptr<Expr> expression)
+        : expr(std::move(expression)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::GroupingExpr; }
+
+    private:
+    std::shared_ptr<Expr> expr;
 };
 
 /// Variable declaration, in JavaScript a variable declaration creates

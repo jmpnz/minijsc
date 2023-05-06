@@ -53,7 +53,7 @@ class VM {
     // VM constructor that we use to load bytecode for execution.
     explicit VM(const Bytecode& bcode) {
         code = bcode;
-        ctx  = std::make_unique<VMContext>();
+        ctx  = std::make_shared<VMContext>();
 #ifdef DEBUG_TRACE_EXECUTION
         disas = Disassembler(bcode, "vm-trace");
 #endif
@@ -102,7 +102,7 @@ class VM {
     // Virtual machine's stack.
     VMStack stack;
     // Execution context.
-    std::unique_ptr<VMContext> ctx;
+    std::shared_ptr<VMContext> ctx;
 #ifdef DEBUG_TRACE_EXECUTION
     // If debug flag is active load a disassembler
     Disassembler disas;
