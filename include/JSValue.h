@@ -58,9 +58,6 @@ class JSBasicValue {
     // Default constructor sets the type to undefined, the variant is in monostate.
     JSBasicValue() : type(JSValueKind::Undefined) {}
 
-    // Copy constructor.
-    JSBasicValue(const JSBasicValue&) = default;
-
     // Constructor for numeric values.
     JSBasicValue(JSNumber number) : value(number), type(JSValueKind::Number) {}
 

@@ -2,7 +2,7 @@
 
 [ ] Don't get bogged down in the details, focus on getting a working REPL/VM.
     * Keep the language semantics close to Lox
-    * Skip protoypes, global objects, function expressions
+    * Skip prototypes, global objects, function expressions
 
 [ ] Check [1] to get an idea for how to do tagged pointers for array objects in JS
 
@@ -10,15 +10,13 @@
 
 [ ] Check the V8 Blog for references on Ignition and TurboFan designs;
 
-[ ] Rewrite our Lexer with a focus on performance
+[ ] Rewrite our Parser with a focus on performance (Pratt + Flat AST)
 
 [ ] Encoding Numbers : int32, in64 as tagged doubles (high bit sets the tag)
 
 [ ] NaN Boxing (NaN Tagging for all values)
 
 [ ] Check YJIT IR
-
-[ ] Rename project to chronon
 
 [ ] Build something like DynASM ?
 

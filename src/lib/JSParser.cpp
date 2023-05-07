@@ -13,12 +13,43 @@
 
 namespace minijsc {
 
-auto JSParser::parseExpr() -> std::shared_ptr<Expr> {
+auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
+    return parseExprStmt();
+}
+
+auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {
+    if (match(JSTokenKind::Var)) {
+        fmt::print("JSParser::parseVarDecl\n");
+        return parseVarDecl();
+    }
+    return parseStmt();
+}
+
+auto JSParser::parseVarDecl() -> std::shared_ptr<JSStmt> {
+    auto name =
+        consume(JSTokenKind::Identifier, "Expected identifier after var");
+    if (match(JSTokenKind::Equal)) {
+        auto initializer = parseExpr();
+        consume(JSTokenKind::Semicolon,
+                "Expected ; after variable declaration");
+        return std::make_shared<JSVarDecl>(name, initializer);
+    }
+    consume(JSTokenKind::Semicolon, "Expected ; after variable declaration");
+    return std::make_shared<JSVarDecl>(name);
+}
+
+auto JSParser::parseExprStmt() -> std::shared_ptr<JSStmt> {
+    auto expr = parseExpr();
+    consume(JSTokenKind::Semicolon, "Expected ';' after expression");
+    return std::make_shared<JSExprStmt>(expr);
+}
+
+auto JSParser::parseExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parseExpr\n");
     return parseEqualityExpr();
 }
 
-auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr> {
+auto JSParser::parsePrimaryExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parsePrimaryExpr\n");
     if (match(JSTokenKind::False)) {
         return std::make_shared<JSLiteralExpr>(JSBasicValue(false));
@@ -37,6 +68,10 @@ auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr> {
         fmt::print("Numeric(Literal({}))\n", literal);
         return std::make_shared<JSLiteralExpr>(JSBasicValue(literal));
     }
+    if (match(JSTokenKind::Identifier)) {
+        fmt::print("JSParse::match(Identifier)");
+        return std::make_shared<JSVarExpr>(previous());
+    }
 
     if (match(JSTokenKind::LParen)) {
         fmt::print("JSParser::match(LParen)\n");
@@ -49,7 +84,7 @@ auto JSParser::parsePrimaryExpr() -> std::shared_ptr<Expr> {
     return nullptr;
 }
 
-auto JSParser::parseComparisonExpr() -> std::shared_ptr<Expr> {
+auto JSParser::parseComparisonExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parseComparisonExpr\n");
     auto expr = parseTermExpr();
 
@@ -62,7 +97,7 @@ auto JSParser::parseComparisonExpr() -> std::shared_ptr<Expr> {
     return expr;
 }
 
-auto JSParser::parseTermExpr() -> std::shared_ptr<Expr> {
+auto JSParser::parseTermExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parseTermExpr\n");
     auto expr = parseFactorExpr();
 
@@ -75,7 +110,7 @@ auto JSParser::parseTermExpr() -> std::shared_ptr<Expr> {
     return expr;
 }
 
-auto JSParser::parseFactorExpr() -> std::shared_ptr<Expr> {
+auto JSParser::parseFactorExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parseFactorExpr\n");
     auto expr = parseUnaryExpr();
 
@@ -88,8 +123,8 @@ auto JSParser::parseFactorExpr() -> std::shared_ptr<Expr> {
     return expr;
 }
 
-auto JSParser::parseUnaryExpr() // NOLINT
-    -> std::shared_ptr<Expr> {  // NOLINT
+auto JSParser::parseUnaryExpr()  // NOLINT
+    -> std::shared_ptr<JSExpr> { // NOLINT
     fmt::print("JSParser::parseUnaryExpr\n");
     if (match({JSTokenKind::Bang, JSTokenKind::Minus})) {
         fmt::print("JSParser::match(Bang, Minus)\n");
@@ -106,7 +141,7 @@ auto JSParser::parseUnaryExpr() // NOLINT
     return parsePrimaryExpr();
 }
 
-auto JSParser::parseEqualityExpr() -> std::shared_ptr<Expr> {
+auto JSParser::parseEqualityExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parseEqualityExpr\n");
     auto expr = parseComparisonExpr();
 

@@ -8,6 +8,8 @@
 
 #include "AST.h"
 #include "JSValue.h"
+#include "Runtime.h"
+
 #include <memory>
 
 namespace minijsc {
@@ -19,8 +21,10 @@ class Interpreter : public Visitor {
     explicit Interpreter()  = default;
     ~Interpreter() override = default;
 
-    /// Core interpreter evaluation loop.
-    auto evaluate(std::shared_ptr<Expr> expr) -> JSBasicValue;
+    /// Evaluate expression.
+    auto evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue;
+    /// Execute statement.
+    auto execute(std::shared_ptr<JSStmt> stmt) -> void;
 
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
         -> JSBasicValue override;
@@ -30,6 +34,9 @@ class Interpreter : public Visitor {
         -> JSBasicValue override;
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue override;
+    auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> JSBasicValue override;
+    auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void override;
+    auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
 
     /// Check truthiness of a value.
     static auto isTruthy(JSBasicValue value) -> bool {
@@ -56,6 +63,9 @@ class Interpreter : public Visitor {
 
         return true;
     }
+
+    /// Runtime environment.
+    Environment env; // NOLINT
 };
 
 } // namespace minijsc

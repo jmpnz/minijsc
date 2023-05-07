@@ -7,6 +7,28 @@
 
 namespace minijsc {
 
+/// Interpreter visits expression statements evaluating the expression
+/// and returning.
+auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
+    evaluate(stmt->getExpr());
+}
+
+/// Interpreter visits variable declarations defining bindings in the runtime
+/// environment.
+auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
+    auto value = JSBasicValue();
+    if (stmt->getInitializer() != nullptr) {
+        value = evaluate(stmt->getInitializer());
+    }
+    env.defineBinding(stmt->getName(), value);
+}
+
+/// Interpreter visits variable expressions returning the value.
+auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
+    -> JSBasicValue {
+    return env.resolveBinding(expr->getName());
+}
+
 /// Interpreter visits literal expressions returning the wrapped value.
 auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
     -> JSBasicValue {
@@ -71,9 +93,14 @@ auto Interpreter::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
     return evaluate(expr->getExpr());
 }
 
-/// Interpreter core evaluation loop.
-auto Interpreter::evaluate(std::shared_ptr<Expr> expr) -> JSBasicValue {
+/// Evaluate expressions.
+auto Interpreter::evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue {
     return expr->accept(this);
+}
+
+/// Execute statements.
+auto Interpreter::execute(std::shared_ptr<JSStmt> stmt) -> void {
+    return stmt->accept(this);
 }
 
 } // namespace minijsc

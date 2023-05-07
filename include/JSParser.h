@@ -71,6 +71,7 @@ class JSParser {
     // it advances to the next token.
     auto consume(const JSTokenKind& kind, std::string message) -> JSToken {
         if (check(kind)) {
+            fmt::print("consume => {}", JSToken(kind, "", 0.0).toString());
             return advance();
         }
         fmt::print("{}", message);
@@ -86,26 +87,41 @@ class JSParser {
     // Return the most recently consumed token.
     auto previous() -> JSToken { return tokens.at(current - 1); }
 
+    // Parse is the core parsing function.
+    auto parse() -> std::vector<std::shared_ptr<JSStmt>>;
+
+    // Parse a statement.
+    auto parseStmt() -> std::shared_ptr<JSStmt>;
+
+    // Parse a declaration.
+    auto parseDecl() -> std::shared_ptr<JSStmt>;
+
+    // Parse a variable declaration.
+    auto parseVarDecl() -> std::shared_ptr<JSStmt>;
+
+    // Parse an expression statement.
+    auto parseExprStmt() -> std::shared_ptr<JSStmt>;
+
     // Parse an expression.
-    auto parseExpr() -> std::shared_ptr<Expr>;
+    auto parseExpr() -> std::shared_ptr<JSExpr>;
 
     // Parse equality expressions.
-    auto parseEqualityExpr() -> std::shared_ptr<Expr>;
+    auto parseEqualityExpr() -> std::shared_ptr<JSExpr>;
 
     // Parse a primary expression.
-    auto parsePrimaryExpr() -> std::shared_ptr<Expr>;
+    auto parsePrimaryExpr() -> std::shared_ptr<JSExpr>;
 
     // Parse a unary expression.
-    auto parseUnaryExpr() -> std::shared_ptr<Expr>;
+    auto parseUnaryExpr() -> std::shared_ptr<JSExpr>;
 
     // Parse a factor expression.
-    auto parseFactorExpr() -> std::shared_ptr<Expr>;
+    auto parseFactorExpr() -> std::shared_ptr<JSExpr>;
 
     // Parse a term expression.
-    auto parseTermExpr() -> std::shared_ptr<Expr>;
+    auto parseTermExpr() -> std::shared_ptr<JSExpr>;
 
     // Parse comparison expression.
-    auto parseComparisonExpr() -> std::shared_ptr<Expr>;
+    auto parseComparisonExpr() -> std::shared_ptr<JSExpr>;
 
     private:
     // Tokens the parser is processing.
