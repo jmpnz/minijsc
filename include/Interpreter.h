@@ -36,19 +36,28 @@ class Interpreter : public Visitor {
     auto executeBlock(JSBlockStmt* block, std::unique_ptr<Environment> env)
         -> void;
 
+    /// Visit a literal expression.
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
         -> JSBasicValue override;
+    /// Visit a binary expression.
     auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
         -> JSBasicValue override;
+    /// Visit a unary expression.
     auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
         -> JSBasicValue override;
+    /// Visit a grouping expression.
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue override;
+    /// Visit a variable expression.
     auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> JSBasicValue override;
+    /// Visit an assignment expression.
     auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue override;
+    /// Visit a block statement.
     auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
+    /// Visit an expression statement.
     auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void override;
+    /// Visit a variable declaration.
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
 
 #ifdef DEBUG_INTERPRETER_ENV

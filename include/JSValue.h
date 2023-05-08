@@ -27,7 +27,7 @@ using JSBoolean = bool;
 // JSString aliases the string types (includes std::string & char*).
 using JSString = std::string;
 
-// JSValueType is a type that can hold all possible variants of JavaScript's
+// JSPrimitiveValue is a type that can hold all possible variants of JavaScript's
 // primitive values.
 using JSPrimitiveValue =
     std::variant<JSNumber, JSBoolean, JSString, JSUndefined, JSNull>;

@@ -1,3 +1,6 @@
+//===----------------------------------------------------------------------===//
+// Interpreter.cpp: This file implements the baseline interpreter for minijsc.
+//===----------------------------------------------------------------------===//
 #include "Interpreter.h"
 #include "AST.h"
 #include "JSToken.h"

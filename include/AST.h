@@ -19,7 +19,10 @@
 
 namespace minijsc {
 
+/// Forward declarations of abstract classes representing AST nodes.
 class JSExpr;
+class JSStmt;
+/// Forward declarations of concrete classes representing AST nodes.
 class JSBinExpr;
 class JSLiteralExpr;
 class JSUnaryExpr;
@@ -31,10 +34,17 @@ class JSExprStmt;
 class JSBlockStmt;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
-/// by both the interperter and the bytecode compiler.
+/// by an AST consumer. There are three AST consumers defined currently
+/// 1. Optimizer: visits nodes in the tree executing re-writes depending
+/// on the optimization selected and node kind.
+/// 2. Interpreter: visits nodes in the tree executing statements
+/// and evaluating expressions.
+/// 3. Bytecode Compiler: visits nodes in the tree emitting bytecode on each
+/// node.
 struct Visitor {
+    /// Default destructor, since Visitor doesn't manage the lifecycle of AST
+    /// nodes it doesn't require a special destructor.
     virtual ~Visitor() = default;
-    // virtual auto visitAssignExpr(Assign expr) -> R     = 0;
     virtual auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
         -> JSBasicValue = 0;
     virtual auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
@@ -60,21 +70,21 @@ struct Visitor {
     virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
 };
 
-/// AST node kinds, enumerates both expression and statement ast nodes.
+/// AST node kinds, enumerates both expression and statement nodes.
 enum class ASTNodeKind {
-    // Literal expression.
+    // Literal expressions, such as value literals.
     LiteralExpr,
-    // Binary expression.
+    // Binary expressions.
     BinaryExpr,
-    // Unary expression.
+    // Unary expressions.
     UnaryExpr,
-    // Grouping expression.
+    // Grouping expressions, which use parenthesis to overload precedence.
     GroupingExpr,
-    // Assignment expression.
+    // Assignment expressions.
     AssignExpr,
-    // Variable expression.
+    // Variable expressions.
     VarExpr,
-    // Variable declaration.
+    // Variable declarations.
     VarDecl,
     // Block statements.
     BlockStmt,
@@ -83,6 +93,7 @@ enum class ASTNodeKind {
 
 };
 
+/// Returns a textual representation of the AST node kind.
 inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
     switch (kind) {
     case ASTNodeKind::LiteralExpr:
@@ -115,15 +126,7 @@ class ASTNode {
 
 /// Expression base interface, the AST is built and evaluated using the visitor
 /// pattern. The base JSExpr type defines all possible JavaScript expressions
-/// each consumer of the ASTm defines the behavior of how a JSExpr is processed
-/// One example would be how the ASTPrinter, Interpreter and Compiler can all
-/// consume an AST which is a sequence of statements.
-/// When we call ASTPrinter.visitBinaryExpr(expr) the expression is printed
-/// to stdout.
-/// When we call Interpreter.visitBinaryExpr(expr) the expression is evaluated
-/// on the fly instead.
-/// And finally if we call Compiler.Compile(expr) the expression is compiled
-/// to bytecode.
+/// each consumer of the AST defines the behavior of how a JSExpr is processed.
 class JSExpr : public ASTNode, public std::enable_shared_from_this<JSExpr> {
     public:
     JSExpr()           = default;
@@ -131,26 +134,9 @@ class JSExpr : public ASTNode, public std::enable_shared_from_this<JSExpr> {
 
     virtual auto getKind() -> ASTNodeKind                 = 0;
     virtual auto accept(Visitor* visitor) -> JSBasicValue = 0;
-
-    // Nested Expr classes here...
 };
 
 /// Statement base interface that defines all possible JavaScript statements.
-/// BlockStatement for basic blocks.
-/// VariableStatement for variable assigments.
-/// EmptyStatement for empty statements.
-/// ExpressionStatement?
-/// IfStatement for conditionals.
-/// BreakableStatement :
-///     - IterationStatement
-///     - SwitchStatement
-/// ContinueStatement for continue statements in loops.
-/// BreakStatement for break statements in loops.
-/// ReturnStatement for function returns.
-/// WithStatement for with declarations.
-/// LabelledStatement for labels?
-/// ThrowStatement for throwing errors and exceptions.
-/// TryStatement for try, catch exception handling.
 class JSStmt : public ASTNode, public std::enable_shared_from_this<JSStmt> {
     public:
     JSStmt()           = default;
@@ -160,7 +146,9 @@ class JSStmt : public ASTNode, public std::enable_shared_from_this<JSStmt> {
     virtual auto accept(Visitor* visitor) -> void = 0;
 };
 
-/// Expression statements.
+/// Expression statements, are statements that invoke or execute expressions.
+/// Example of expression statements are function calls, variable assignments
+/// or in-place increments.
 class JSExprStmt : public JSStmt {
     public:
     // Expression statement constructor takes an expression and associates
@@ -183,7 +171,8 @@ class JSExprStmt : public JSStmt {
     std::shared_ptr<JSExpr> expr;
 };
 
-/// Block statements.
+/// Block statements, are blocks of statements to execute. Block statements
+/// are enclosed in a scope.
 class JSBlockStmt : public JSStmt {
     public:
     // Block statement constructor takes a sequence of statements and associates
@@ -206,7 +195,8 @@ class JSBlockStmt : public JSStmt {
     std::vector<std::shared_ptr<JSStmt>> stmts;
 };
 
-/// Variable declarations.
+/// Variable declarations are statements that create runtime bindings
+/// to associate a variable to an expression.
 class JSVarDecl : public JSStmt {
     public:
     // Variable statement constructor takes a variable name and an optional
@@ -235,7 +225,8 @@ class JSVarDecl : public JSStmt {
     std::shared_ptr<JSExpr> initializer;
 };
 
-/// Variable expression.
+/// Variable expressions, are expressions which return the value bound to
+/// a variable.
 class JSVarExpr : public JSExpr {
     public:
     explicit JSVarExpr(JSToken name) : name(std::move(name)) {}
@@ -254,7 +245,8 @@ class JSVarExpr : public JSExpr {
     JSToken name;
 };
 
-/// Assignment expression.
+/// Assignment expressions, are expressions which after evaluation are bound
+/// to a variable.
 class JSAssignExpr : public JSExpr {
     public:
     explicit JSAssignExpr(JSToken name, std::shared_ptr<JSExpr> value)
@@ -277,7 +269,7 @@ class JSAssignExpr : public JSExpr {
     std::shared_ptr<JSExpr> value;
 };
 
-/// Binary expression implementation.
+/// Binary expressions, are expressions that encapsulate binary operations.
 class JSBinExpr : public JSExpr {
     public:
     /// Binary expression constructor takes both sides of the expression
@@ -310,7 +302,7 @@ class JSBinExpr : public JSExpr {
     JSToken binOp;
 };
 
-// Unary expression implementation.
+// Unary expressions, are expressions that encapsulate unary operations.
 class JSUnaryExpr : public JSExpr {
     public:
     // Unary expression constructor.
@@ -336,7 +328,7 @@ class JSUnaryExpr : public JSExpr {
     std::shared_ptr<JSExpr> right;
 };
 
-// Literal expression implementation.
+// Literal expressions, are expressions that return a value literal.
 class JSLiteralExpr : public JSExpr {
     public:
     // Constructor takes a JSBasicValue.
@@ -357,7 +349,8 @@ class JSLiteralExpr : public JSExpr {
     std::shared_ptr<JSBasicValue> value;
 };
 
-// Grouping expression implementation.
+// Grouping expressions,are expressions enclosed in parentheses overloading
+// the default precdence rules.
 class JSGroupingExpr : public JSExpr {
     public:
     explicit JSGroupingExpr(std::shared_ptr<JSExpr> expression)
@@ -376,24 +369,6 @@ class JSGroupingExpr : public JSExpr {
     private:
     std::shared_ptr<JSExpr> expr;
 };
-
-/// Variable declaration, in JavaScript a variable declaration creates
-/// the variable without an assignment. Variable declarations allocate
-/// the variable and associate an identifier to it.
-/// Because variables declared without an initializer will end up
-/// undefined, we can mix variable statements and declarations in our
-/// class by having an optional assignemnt.
-/// Since assignments can take both bindings or expressions we need a way
-/// to represent this in our initializer field.
-/// `var a;` : `a` is undefined.
-/// `var a = (5 * 3 / 8) + "bob" : `a` is assigned an expression.
-/// `var a = function(a,b) { return a;}` : `a` is a binding to a function.
-
-/// Declaration is a base class for possible declarations, since all declarations
-/// are statements declarations can also inherit from the statement.
-/// ClassDeclaration for classes i.e class Person {}.
-/// FunctionDeclaration for functions i.e function add() {};
-/// VaribaleDeclaration for variables i.e var a;
 
 } // namespace minijsc
 
