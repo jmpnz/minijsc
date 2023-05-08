@@ -6,12 +6,22 @@
 
 #include <cassert>
 #include <cstddef>
+#include <iostream>
 #include <iterator>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace minijsc {
+
+auto JSParser::parse() -> std::vector<std::shared_ptr<JSStmt>> {
+    std::vector<std::shared_ptr<JSStmt>> statements;
+    while (!isAtEnd()) {
+        statements.emplace_back(parseDecl());
+    }
+    return statements;
+}
 
 auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
     return parseExprStmt();
@@ -40,13 +50,41 @@ auto JSParser::parseVarDecl() -> std::shared_ptr<JSStmt> {
 
 auto JSParser::parseExprStmt() -> std::shared_ptr<JSStmt> {
     auto expr = parseExpr();
+    fmt::print("parseExprStmt::\n");
+    std::cout << "Node Kind : " << astNodeKindToString(expr->getKind()) << '\n';
+    std::cout << "Current Token: " << tokens[current].toString() << '\n';
+    std::cout << "Peek Token: " << tokens[current + 1].toString() << '\n';
     consume(JSTokenKind::Semicolon, "Expected ';' after expression");
     return std::make_shared<JSExprStmt>(expr);
 }
 
 auto JSParser::parseExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parseExpr\n");
-    return parseEqualityExpr();
+    return parseAssignmentExpr();
+}
+
+auto JSParser::parseAssignmentExpr() -> std::shared_ptr<JSExpr> {
+    auto expr = parseEqualityExpr();
+
+    if (match(JSTokenKind::Equal)) {
+        auto equals = previous();
+        auto value  = parseAssignmentExpr();
+
+        // We could use some form of RTTI to decide
+        // the right handside which could be a variable
+        // expression or a function expression.
+        // But since our AST node encode their node kind
+        // we can simply check the node kind.
+        if (expr->getKind() == ASTNodeKind::VarExpr) {
+            fmt::print("JSParaser::parseAssignment::IsVarExpr\n");
+            auto name = std::static_pointer_cast<JSVarExpr>(expr)->getName();
+            return std::make_shared<JSAssignExpr>(name, value);
+        }
+
+        throw std::runtime_error("Invalid assignment target.");
+    }
+
+    return expr;
 }
 
 auto JSParser::parsePrimaryExpr() -> std::shared_ptr<JSExpr> {

@@ -2,6 +2,7 @@
 #include "AST.h"
 #include "JSToken.h"
 #include "JSValue.h"
+#include "fmt/core.h"
 #include <memory>
 #include <stdexcept>
 
@@ -27,6 +28,15 @@ auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
 auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
     -> JSBasicValue {
     return env.resolveBinding(expr->getName());
+}
+
+/// Interpreter visits assignment expression, evaluating the right handside
+/// and assigning it to the left handside.
+auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
+    -> JSBasicValue {
+    auto value = evaluate(expr->getValue());
+    env.defineBinding(expr->getName().getLexeme(), value);
+    return value;
 }
 
 /// Interpreter visits literal expressions returning the wrapped value.
@@ -91,6 +101,18 @@ auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
 auto Interpreter::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
     -> JSBasicValue {
     return evaluate(expr->getExpr());
+}
+
+/// Run the interpreter evaluation loop.
+auto Interpreter::run(std::vector<std::shared_ptr<JSStmt>> stmts) -> void {
+    try {
+        for (const auto& stmt : stmts) {
+            execute(stmt);
+        }
+    } catch (const std::runtime_error& e) {
+        fmt::print("Runtime error : {}", e.what());
+        return;
+    }
 }
 
 /// Evaluate expressions.

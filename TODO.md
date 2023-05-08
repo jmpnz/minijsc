@@ -1,5 +1,23 @@
 # TODO
 
+[ ] Review JS grammar file, ensure all tokens are handled and treat undefined as a keyword.
+
+[ ] Rewrite the parseExpression code to use Pratt's top down precedence parsing
+
+[ ] Handle nullptr returns when parsing, add error handling to the parser
+
+[ ] Use ExprRef/StmtRef pattern to build a flat AST
+
+[ ] CMake release flags :
+    * Strip debug info with -s
+    * Compile with -O3
+    * Review the need for exceptions, can we do better ? (-fno-exceptions)
+    * We're not using RTTI so (-fno-rtti)
+    * -fno-stack-protector
+    * -fomit-frame-pointer
+    * Ensure we don't use -ffast-math since we deal with double
+    * Review linking configuration
+
 [ ] Don't get bogged down in the details, focus on getting a working REPL/VM.
     * Keep the language semantics close to Lox
     * Skip prototypes, global objects, function expressions

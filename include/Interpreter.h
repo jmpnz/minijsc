@@ -21,6 +21,9 @@ class Interpreter : public Visitor {
     explicit Interpreter()  = default;
     ~Interpreter() override = default;
 
+    /// Run a sequence of statements (a program).
+    auto run(std::vector<std::shared_ptr<JSStmt>> stmts) -> void;
+
     /// Evaluate expression.
     auto evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue;
     /// Execute statement.
@@ -35,6 +38,8 @@ class Interpreter : public Visitor {
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue override;
     auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> JSBasicValue override;
+    auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
+        -> JSBasicValue override;
     auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void override;
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
 

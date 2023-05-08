@@ -604,6 +604,18 @@ TEST_CASE("testing interpreter evaluate") {
                   .resolveBinding(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 5.);
     }
+    SUBCASE("test interpretering variable assignment") {
+        auto source      = "var a = 42;\n a = 39;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        interpreter.run(stmts);
+        CHECK(interpreter.env
+                  .resolveBinding(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == 39.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

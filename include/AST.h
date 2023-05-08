@@ -25,6 +25,7 @@ class JSLiteralExpr;
 class JSUnaryExpr;
 class JSGroupingExpr;
 class JSVarExpr;
+class JSAssignExpr;
 class JSExprStmt;
 class JSVarDecl;
 
@@ -42,6 +43,8 @@ struct Visitor {
     virtual auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue = 0;
     virtual auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
+        -> JSBasicValue = 0;
+    virtual auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue = 0;
     // virtual auto visitCallExpr(Call expr) -> R         = 0;
     // virtual auto visitGetExpr(Get expr) -> R           = 0;
@@ -65,6 +68,8 @@ enum class ASTNodeKind {
     UnaryExpr,
     // Grouping expression.
     GroupingExpr,
+    // Assignment expression.
+    AssignExpr,
     // Variable expression.
     VarExpr,
     // Variable declaration.
@@ -73,6 +78,27 @@ enum class ASTNodeKind {
     ExprStmt,
 
 };
+
+inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
+    switch (kind) {
+    case ASTNodeKind::LiteralExpr:
+        return "LiteralExpr";
+    case ASTNodeKind::BinaryExpr:
+        return "BinaryExpr";
+    case ASTNodeKind::UnaryExpr:
+        return "UnaryExpr";
+    case ASTNodeKind::GroupingExpr:
+        return "GroupingExpr";
+    case ASTNodeKind::AssignExpr:
+        return "AssignExpr";
+    case ASTNodeKind::VarExpr:
+        return "VarExpr";
+    case ASTNodeKind::VarDecl:
+        return "VarDecl";
+    case ASTNodeKind::ExprStmt:
+        return "ExprStmt";
+    }
+}
 
 /// AST node interface encapsulates both expressions and statements.
 class ASTNode {
@@ -197,6 +223,29 @@ class JSVarExpr : public JSExpr {
 
     private:
     JSToken name;
+};
+
+/// Assignment expression.
+class JSAssignExpr : public JSExpr {
+    public:
+    explicit JSAssignExpr(JSToken name, std::shared_ptr<JSExpr> value)
+        : name(std::move(name)), value(std::move(value)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::AssignExpr; }
+
+    auto accept(Visitor* visitor) -> JSBasicValue override {
+        fmt::print("JSAssignExpr::accept\n");
+        return visitor->visitAssignExpr(
+            std::static_pointer_cast<JSAssignExpr>(shared_from_this()));
+    }
+
+    auto getName() -> JSToken { return name; }
+
+    auto getValue() -> std::shared_ptr<JSExpr> { return value; }
+
+    private:
+    JSToken name;
+    std::shared_ptr<JSExpr> value;
 };
 
 /// Binary expression implementation.

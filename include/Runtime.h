@@ -33,6 +33,16 @@ class Environment {
                                  "'.");
     }
 
+    // Assign a new value to an existing binding.
+    auto assign(const std::string& name, const JSBasicValue& value) -> void {
+        if (values.contains(name)) {
+            values[name] = value;
+            return;
+        }
+
+        throw std::runtime_error("Undefined variable: '" + name + "'.");
+    }
+
     private:
     /// Values map stores variable declarations by their variable name mapping
     /// them to the variable values.

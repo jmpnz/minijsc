@@ -105,6 +105,9 @@ class JSParser {
     // Parse an expression.
     auto parseExpr() -> std::shared_ptr<JSExpr>;
 
+    // Parse an assignment expression.
+    auto parseAssignmentExpr() -> std::shared_ptr<JSExpr>;
+
     // Parse equality expressions.
     auto parseEqualityExpr() -> std::shared_ptr<JSExpr>;
 
