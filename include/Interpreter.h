@@ -26,15 +26,15 @@ class Interpreter : public Visitor {
     ~Interpreter() override = default;
 
     /// Run a sequence of statements (a program).
-    auto run(std::vector<std::shared_ptr<JSStmt>> stmts) -> void;
+    auto run(const std::vector<std::shared_ptr<JSStmt>>& stmts) -> void;
 
     /// Evaluate expression.
-    auto evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue;
+    auto evaluate(JSExpr* expr) -> JSBasicValue;
     /// Execute a single statement.
-    auto execute(std::shared_ptr<JSStmt> stmt) -> void;
+    auto execute(JSStmt* stmt) -> void;
     /// Execute a block (sequence of statements)
-    auto executeBlock(std::shared_ptr<JSBlockStmt> block,
-                      std::unique_ptr<Environment> env) -> void;
+    auto executeBlock(JSBlockStmt* block, std::unique_ptr<Environment> env)
+        -> void;
 
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
         -> JSBasicValue override;

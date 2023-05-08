@@ -14,13 +14,13 @@ namespace minijsc {
 /// Interpreter visits expression statements evaluating the expression
 /// and returning.
 auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
-    evaluate(stmt->getExpr());
+    evaluate(stmt->getExpr().get());
 }
 
 /// Interpreter visits a block statement executing the statements within
 /// the block.
 auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
-    executeBlock(block, std::make_unique<Environment>());
+    executeBlock(block.get(), std::make_unique<Environment>());
 }
 
 /// Interpreter visits variable declarations defining bindings in the runtime
@@ -28,7 +28,7 @@ auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
 auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
     auto value = JSBasicValue();
     if (stmt->getInitializer() != nullptr) {
-        value = evaluate(stmt->getInitializer());
+        value = evaluate(stmt->getInitializer().get());
     }
     assert(env != nullptr);
     env->defineBinding(stmt->getName(), value);
@@ -44,7 +44,7 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
 /// and assigning it to the left handside.
 auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
-    auto value = evaluate(expr->getValue());
+    auto value = evaluate(expr->getValue().get());
     env->defineBinding(expr->getName().getLexeme(), value);
     return value;
 }
@@ -58,8 +58,8 @@ auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
 /// Interpreter visits binary expressions returning result of evaluation.
 auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
     -> JSBasicValue {
-    auto lhs   = evaluate(expr->getLeft());
-    auto rhs   = evaluate(expr->getRight());
+    auto lhs   = evaluate(expr->getLeft().get());
+    auto rhs   = evaluate(expr->getRight().get());
     auto binOp = expr->getOperator();
 
     switch (binOp.getKind()) {
@@ -93,7 +93,7 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
 /// Interpreter visits unary expressions returning result of evaluation.
 auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
     -> JSBasicValue {
-    auto rhs     = evaluate(expr->getRight());
+    auto rhs     = evaluate(expr->getRight().get());
     auto unaryOp = expr->getOperator();
     switch (unaryOp.getKind()) {
     case JSTokenKind::Minus:
@@ -110,14 +110,15 @@ auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
 /// Interpreter visits grouping expression evaluating the grouped expression.
 auto Interpreter::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
     -> JSBasicValue {
-    return evaluate(expr->getExpr());
+    return evaluate(expr->getExpr().get());
 }
 
 /// Run the interpreter evaluation loop.
-auto Interpreter::run(std::vector<std::shared_ptr<JSStmt>> stmts) -> void {
+auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
+    -> void {
     try {
         for (const auto& stmt : stmts) {
-            execute(stmt);
+            execute(stmt.get());
         }
     } catch (const std::runtime_error& e) {
         fmt::print("Runtime error : {}", e.what());
@@ -126,21 +127,19 @@ auto Interpreter::run(std::vector<std::shared_ptr<JSStmt>> stmts) -> void {
 }
 
 /// Evaluate expressions.
-auto Interpreter::evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue {
+auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
     return expr->accept(this);
 }
 
 /// Execute a single statement.
-auto Interpreter::execute(std::shared_ptr<JSStmt> stmt) -> void {
-    return stmt->accept(this);
-}
+auto Interpreter::execute(JSStmt* stmt) -> void { return stmt->accept(this); }
 
 /// Execute a block.
-auto Interpreter::executeBlock(std::shared_ptr<JSBlockStmt> block,
+auto Interpreter::executeBlock(JSBlockStmt* block,
                                std::unique_ptr<Environment> env) -> void {
     EnvGuard guard(*this, std::move(env));
     for (auto& stmt : block->getStmts()) {
-        execute(stmt);
+        execute(stmt.get());
     }
 }
 
