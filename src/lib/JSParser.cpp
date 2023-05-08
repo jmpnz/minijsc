@@ -24,7 +24,21 @@ auto JSParser::parse() -> std::vector<std::shared_ptr<JSStmt>> {
 }
 
 auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
+    if (match(JSTokenKind::LBrace)) {
+        return parseBlockStmt();
+    }
     return parseExprStmt();
+}
+
+auto JSParser::parseBlockStmt() -> std::shared_ptr<JSBlockStmt> {
+    std::vector<std::shared_ptr<JSStmt>> statements;
+
+    while (!check(JSTokenKind::RBrace) && !isAtEnd()) {
+        statements.emplace_back(parseDecl());
+    }
+
+    consume(JSTokenKind::RBrace, "Expected '}' after block.");
+    return std::make_shared<JSBlockStmt>(statements);
 }
 
 auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {

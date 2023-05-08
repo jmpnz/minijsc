@@ -26,8 +26,9 @@ class JSUnaryExpr;
 class JSGroupingExpr;
 class JSVarExpr;
 class JSAssignExpr;
-class JSExprStmt;
 class JSVarDecl;
+class JSExprStmt;
+class JSBlockStmt;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
 /// by both the interperter and the bytecode compiler.
@@ -54,8 +55,9 @@ struct Visitor {
     // virtual auto visitThisExpr(This expr) -> R         = 0;
     // virtual auto visitUnaryExpr(Unary expr) -> R       = 0;
     // virtual auto visitVariableExpr(Variable expr) -> R = 0;
-    virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void = 0;
-    virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void   = 0;
+    virtual auto visitBlockStmt(std::shared_ptr<JSBlockStmt> stmt) -> void = 0;
+    virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
+    virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
 };
 
 /// AST node kinds, enumerates both expression and statement ast nodes.
@@ -74,6 +76,8 @@ enum class ASTNodeKind {
     VarExpr,
     // Variable declaration.
     VarDecl,
+    // Block statements.
+    BlockStmt,
     // Expression statement.
     ExprStmt,
 
@@ -95,6 +99,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "VarExpr";
     case ASTNodeKind::VarDecl:
         return "VarDecl";
+    case ASTNodeKind::BlockStmt:
+        return "BlockStmt";
     case ASTNodeKind::ExprStmt:
         return "ExprStmt";
     }
@@ -175,6 +181,29 @@ class JSExprStmt : public JSStmt {
     private:
     // Expression associated to the statement.
     std::shared_ptr<JSExpr> expr;
+};
+
+/// Block statements.
+class JSBlockStmt : public JSStmt {
+    public:
+    // Block statement constructor takes a sequence of statements and associates
+    // it to a block.
+    explicit JSBlockStmt(std::vector<std::shared_ptr<JSStmt>> stmts)
+        : stmts(std::move(stmts)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::BlockStmt; };
+
+    auto getStmts() -> std::vector<std::shared_ptr<JSStmt>> { return stmts; }
+
+    auto accept(Visitor* visitor) -> void override {
+        fmt::print("JSBlockStmt::accept\n");
+        return visitor->visitBlockStmt(
+            std::static_pointer_cast<JSBlockStmt>(shared_from_this()));
+    }
+
+    private:
+    // Statements associated to the block.
+    std::vector<std::shared_ptr<JSStmt>> stmts;
 };
 
 /// Variable declarations.

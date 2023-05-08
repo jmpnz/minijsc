@@ -6,11 +6,14 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
+#define DEBUG_INTERPRETER_ENV
+
 #include "AST.h"
 #include "JSValue.h"
 #include "Runtime.h"
 
 #include <memory>
+#include <mutex>
 
 namespace minijsc {
 
@@ -18,7 +21,8 @@ namespace minijsc {
 class Interpreter : public Visitor {
     public:
     /// Default constructor.
-    explicit Interpreter()  = default;
+    explicit Interpreter() : env(std::make_unique<Environment>()) {}
+
     ~Interpreter() override = default;
 
     /// Run a sequence of statements (a program).
@@ -26,8 +30,11 @@ class Interpreter : public Visitor {
 
     /// Evaluate expression.
     auto evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue;
-    /// Execute statement.
+    /// Execute a single statement.
     auto execute(std::shared_ptr<JSStmt> stmt) -> void;
+    /// Execute a block (sequence of statements)
+    auto executeBlock(std::shared_ptr<JSBlockStmt> block,
+                      std::unique_ptr<Environment> env) -> void;
 
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
         -> JSBasicValue override;
@@ -40,8 +47,17 @@ class Interpreter : public Visitor {
     auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> JSBasicValue override;
     auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue override;
+    auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
     auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void override;
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
+
+#ifdef DEBUG_INTERPRETER_ENV
+
+    auto getEnv(const JSToken& name) -> JSBasicValue {
+        return env->resolveBinding(name);
+    }
+
+#endif
 
     /// Check truthiness of a value.
     static auto isTruthy(JSBasicValue value) -> bool {
@@ -69,8 +85,25 @@ class Interpreter : public Visitor {
         return true;
     }
 
+    private:
     /// Runtime environment.
-    Environment env; // NOLINT
+    std::unique_ptr<Environment> env;
+
+    // EnvGuard.
+    class EnvGuard {
+        public:
+        EnvGuard(Interpreter& interpreter, std::unique_ptr<Environment> env)
+            : interpreter(interpreter) {
+            previous        = std::move(interpreter.env);
+            interpreter.env = std::move(env);
+        }
+
+        ~EnvGuard() { interpreter.env = std::move(previous); }
+
+        private:
+        Interpreter& interpreter;
+        std::unique_ptr<Environment> previous;
+    };
 };
 
 } // namespace minijsc

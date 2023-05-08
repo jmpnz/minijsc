@@ -2,7 +2,10 @@
 #include "AST.h"
 #include "JSToken.h"
 #include "JSValue.h"
+#include "Runtime.h"
 #include "fmt/core.h"
+#include <cassert>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 
@@ -14,6 +17,12 @@ auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
     evaluate(stmt->getExpr());
 }
 
+/// Interpreter visits a block statement executing the statements within
+/// the block.
+auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
+    executeBlock(block, std::make_unique<Environment>());
+}
+
 /// Interpreter visits variable declarations defining bindings in the runtime
 /// environment.
 auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
@@ -21,13 +30,14 @@ auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
     if (stmt->getInitializer() != nullptr) {
         value = evaluate(stmt->getInitializer());
     }
-    env.defineBinding(stmt->getName(), value);
+    assert(env != nullptr);
+    env->defineBinding(stmt->getName(), value);
 }
 
 /// Interpreter visits variable expressions returning the value.
 auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
     -> JSBasicValue {
-    return env.resolveBinding(expr->getName());
+    return env->resolveBinding(expr->getName());
 }
 
 /// Interpreter visits assignment expression, evaluating the right handside
@@ -35,7 +45,7 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
 auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
     auto value = evaluate(expr->getValue());
-    env.defineBinding(expr->getName().getLexeme(), value);
+    env->defineBinding(expr->getName().getLexeme(), value);
     return value;
 }
 
@@ -120,9 +130,18 @@ auto Interpreter::evaluate(std::shared_ptr<JSExpr> expr) -> JSBasicValue {
     return expr->accept(this);
 }
 
-/// Execute statements.
+/// Execute a single statement.
 auto Interpreter::execute(std::shared_ptr<JSStmt> stmt) -> void {
     return stmt->accept(this);
+}
+
+/// Execute a block.
+auto Interpreter::executeBlock(std::shared_ptr<JSBlockStmt> block,
+                               std::unique_ptr<Environment> env) -> void {
+    EnvGuard guard(*this, std::move(env));
+    for (auto& stmt : block->getStmts()) {
+        execute(stmt);
+    }
 }
 
 } // namespace minijsc

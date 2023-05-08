@@ -15,6 +15,8 @@
 #include "Bytecode.h"
 #include "VM.h"
 
+#define DEBUG_INTERPRETER_ENV
+
 #include <cstdio>
 
 #include <algorithm>
@@ -360,7 +362,7 @@ TEST_CASE("testing the parser") {
 }
 
 TEST_CASE("testing interpreter evaluate") {
-    SUBCASE("test interpretering boolean literal(true)") {
+    SUBCASE("test interpreting boolean literal(true)") {
         auto source      = "true;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -372,7 +374,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
     }
-    SUBCASE("test interpretering boolean literal(false)") {
+    SUBCASE("test interpreting boolean literal(false)") {
         auto source      = "false;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -384,7 +386,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == JSBoolean(false));
         CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
     }
-    SUBCASE("test interpretering unary expressions (-1)") {
+    SUBCASE("test interpreting unary expressions (-1)") {
         auto source      = "-1;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -396,7 +398,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(-1));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
-    SUBCASE("test interpretering unary expressions (truthy/undefined)") {
+    SUBCASE("test interpreting unary expressions (truthy/undefined)") {
         auto source      = "!undefined;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -408,7 +410,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
-    SUBCASE("test interpretering unary expressions (truthy/null)") {
+    SUBCASE("test interpreting unary expressions (truthy/null)") {
         auto source      = "!null;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -421,7 +423,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
-    SUBCASE("test interpretering binary expressions (add)") {
+    SUBCASE("test interpreting binary expressions (add)") {
         auto source      = "1 + 3;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -433,7 +435,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(4));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering grouped expressions (add/mul)") {
+    SUBCASE("test interpreting grouped expressions (add/mul)") {
         auto source      = "(1 + 3) * 5;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -445,7 +447,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(20));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering grouped expressions (mul/add)") {
+    SUBCASE("test interpreting grouped expressions (mul/add)") {
         auto source      = "(3 * 5) + 1;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -457,7 +459,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(16));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering unary expressions (!false)") {
+    SUBCASE("test interpreting unary expressions (!false)") {
         auto source      = "!false;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -469,7 +471,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
-    SUBCASE("test interpretering binary expressions (add)") {
+    SUBCASE("test interpreting binary expressions (add)") {
         auto source      = "1 + 3;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -481,7 +483,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(4));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering grouped expressions (add/mul)") {
+    SUBCASE("test interpreting grouped expressions (add/mul)") {
         auto source      = "(1 + 3) * 5;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -493,7 +495,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(20));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering grouped expressions (mul/add)") {
+    SUBCASE("test interpreting grouped expressions (mul/add)") {
         auto source      = "(3 * 5) + 1;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -505,8 +507,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(16));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE(
-        "test interpretering grouped expressions (add/mul) no parenthesis") {
+    SUBCASE("test interpreting grouped expressions (add/mul) no parenthesis") {
         auto source      = "1 + 3 * 5;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -518,8 +519,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSNumber>() == JSNumber(16));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE(
-        "test interpretering binary expressions (comparison/greater_equal)") {
+    SUBCASE("test interpreting binary expressions (comparison/greater_equal)") {
         auto source      = "5 >= 5;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -531,7 +531,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering binary expressions (comparison/greater)") {
+    SUBCASE("test interpreting binary expressions (comparison/greater)") {
         auto source      = "5 > 4;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -543,8 +543,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE(
-        "test interpretering binary expressions (comparison/lesser_equal)") {
+    SUBCASE("test interpreting binary expressions (comparison/lesser_equal)") {
         auto source      = "4 <= 4;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -556,7 +555,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering binary expressions (comparison/lesser)") {
+    SUBCASE("test interpreting binary expressions (comparison/lesser)") {
         auto source      = "3 < 4;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -568,7 +567,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering binary expressions (comparison/unequal") {
+    SUBCASE("test interpreting binary expressions (comparison/unequal") {
         auto source      = "3 != 4;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -580,7 +579,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering binary expressions (comparison/equal_equal)") {
+    SUBCASE("test interpreting binary expressions (comparison/equal_equal)") {
         auto source      = "3 == 4;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -592,7 +591,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == false);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    SUBCASE("test interpretering variable declaration") {
+    SUBCASE("test interpreting variable declaration") {
         auto source      = "var a = 5;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -600,11 +599,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmt        = parser.parseDecl();
         auto interpreter = Interpreter();
         interpreter.execute(stmt);
-        CHECK(interpreter.env
-                  .resolveBinding(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 5.);
     }
-    SUBCASE("test interpretering variable assignment") {
+    SUBCASE("test interpreting variable assignment") {
         auto source      = "var a = 42;\n a = 39;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
@@ -612,9 +610,19 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         interpreter.run(stmts);
-        CHECK(interpreter.env
-                  .resolveBinding(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 39.);
+    }
+    SUBCASE("test interpreting block statements") {
+        auto source      = "var a = 42;\n{var a = 39; var b = 24;}";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        interpreter.run(stmts);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == 42.);
     }
 }
 

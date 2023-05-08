@@ -5,9 +5,11 @@
 #include "JSValue.h"
 
 #include <exception>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 namespace minijsc {
 
@@ -16,7 +18,11 @@ namespace minijsc {
 class Environment {
     public:
     // Default constructor.
-    explicit Environment() = default;
+    explicit Environment() : enclosing(nullptr) {}
+
+    // Constructor with an enclosing environment.
+    explicit Environment(Environment* env)
+        : enclosing(std::make_unique<Environment>(env)) {}
 
     // Define a new binding.
     auto defineBinding(const std::string& name, const JSBasicValue& value)
@@ -29,6 +35,9 @@ class Environment {
         if (values.contains(name.getLexeme())) {
             return values[name.getLexeme()];
         }
+        if (enclosing != nullptr) {
+            return enclosing->resolveBinding(name);
+        }
         throw std::runtime_error("Undefined variable : '" + name.getLexeme() +
                                  "'.");
     }
@@ -39,6 +48,10 @@ class Environment {
             values[name] = value;
             return;
         }
+        if (enclosing != nullptr) {
+            enclosing->assign(name, value);
+            return;
+        }
 
         throw std::runtime_error("Undefined variable: '" + name + "'.");
     }
@@ -47,6 +60,8 @@ class Environment {
     /// Values map stores variable declarations by their variable name mapping
     /// them to the variable values.
     std::unordered_map<std::string, JSBasicValue> values;
+    /// Enclosing environment for handling scoped variables.
+    std::unique_ptr<Environment> enclosing;
 };
 } // namespace minijsc
 
