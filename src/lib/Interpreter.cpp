@@ -24,10 +24,9 @@ auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
 /// the block.
 auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
     fmt::print("visitBlockStmt\n");
-    assert(block.get() != nullptr);
-    assert(env.get() != nullptr);
     fmt::print("All pointers are good\n");
-    executeBlock(block->getStmts(), env.get());
+    auto env = Environment();
+    executeBlock(block.get(), env);
     fmt::print("Done processing block\n");
 }
 
@@ -39,10 +38,9 @@ auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
         value = evaluate(stmt->getInitializer().get());
         fmt::print("Has initializer : {}\n", value.toString());
     }
-    assert(env != nullptr);
     fmt::print("Defining binding : {} -> {}\n", stmt->getName(),
                value.toString());
-    env->defineBinding(stmt->getName(), value);
+    define(stmt->getName(), value);
 }
 
 /// Interpreter visits variable expressions returning the value.
@@ -50,7 +48,8 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
     -> JSBasicValue {
     fmt::print("Resolving variable expression: {}\n",
                expr->getName().getLexeme());
-    return env->resolveBinding(expr->getName());
+    // TODO: handle nullopt
+    return resolve(expr->getName().getLexeme());
 }
 
 /// Interpreter visits assignment expression, evaluating the right handside
@@ -59,7 +58,7 @@ auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
     auto value = evaluate(expr->getValue().get());
     fmt::print("Visit assign expr: {}\n", value.toString());
-    env->assign(expr->getName().getLexeme(), value);
+    assign(expr->getName().getLexeme(), value);
     return value;
 }
 
@@ -169,12 +168,32 @@ auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
 auto Interpreter::execute(JSStmt* stmt) -> void { return stmt->accept(this); }
 
 /// Execute a block.
-auto Interpreter::executeBlock(JSBlockStmt* block,
-                               std::unique_ptr<Environment> env) -> void {
-    EnvGuard guard(*this, std::move(env));
+auto Interpreter::executeBlock(JSBlockStmt* block, Environment env) -> void {
+    // Get the current scope.
+    auto currentScopeIdx = this->currIdx;
+    // Create a new scope, with the current scope as its parent.
+    // auto newScopedEnv = Environment(Parent = currentScopeIdx);
+    // Set the parent pointer on the `env` scope to the current scope index.
+    env.setParentPtr(currentScopeIdx);
+    // Append the new environment to the nested envs and increment the currIdx.
+    this->symTables.emplace_back(env);
+    // Substract one since we started from a current scope ptr of 0 because
+    // vectors are 0-indexed.
+    currIdx += 1;
+    fmt::print("Scope index: {}\n", currIdx);
     for (auto& stmt : block->getStmts()) {
+        // If execute fails we unwind the new environment and restore
+        // back the previous index
         execute(stmt.get());
     }
+    // TODO: unwind runtime environments stack here as well
+    //
+    // saveguard parent scope ptr before destroying the current scope
+    auto parent = this->symTables[currIdx].getParentPtr();
+    // pop the env from the stack
+    this->symTables.pop_back();
+    // restore old stack pointer
+    this->currIdx = parent;
 }
 
 } // namespace minijsc

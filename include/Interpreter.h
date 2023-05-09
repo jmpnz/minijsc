@@ -6,6 +6,8 @@
 #ifndef INTERPRETER_H
 #define INTERPRETER_H
 
+#include <ios>
+#include <optional>
 #define DEBUG_INTERPRETER_ENV
 
 #include "AST.h"
@@ -16,14 +18,78 @@
 #include <mutex>
 
 namespace minijsc {
+/// Max possiblee number of scopes.
+static constexpr int kMaxNestedScopes = 65535;
 
 /// Interpreter implements runtime evaluation of the abstract syntax tree.
 class Interpreter : public Visitor {
     public:
     /// Default constructor.
-    explicit Interpreter() : env(std::make_unique<Environment>()) {}
+    explicit Interpreter() {
+        // Allocate for enough scopes.
+        symTables.reserve(kMaxNestedScopes);
+        // Set the index of the current environment to 0.
+        currIdx = 0;
+        // Append a new environment and set it's parent to -1.
+        auto topLevel = Environment();
+        topLevel.setParentPtr(-1);
+        symTables.emplace_back(topLevel);
+    }
 
     ~Interpreter() override = default;
+
+    /// Define a binding, definitions of new bindings always go into
+    /// the current scope.
+    auto define(const std::string& name, const JSBasicValue& value) -> void {
+        symTables[currIdx].defineBinding(name, value);
+    }
+
+    /// Assign abinding.
+    auto assign(const std::string& name, JSBasicValue value) -> void {
+        // In order to create an assignment we need to check scopes
+        // in the reverse order they were created in.
+        // Starting from the current scope and iterating until we reach
+        // the global scope at index 0.
+        auto idx = currIdx;
+        while (idx != -1) {
+            // If the variable exists this scope, try and create an assignment.
+            if (symTables[idx].resolveBinding(name) != std::nullopt) {
+                auto ok = symTables[idx].assign(name, value); //NOLINT
+                if (ok) {
+                    // If the assignment is successful return.
+                    return;
+                }
+            }
+            // If the variable wasn't found in the current scope, move to its parent.
+            idx = symTables[idx].getParentPtr();
+        }
+        // If the variable isn't found in all the scopes throw a runtime error
+        throw std::runtime_error(
+            fmt::format("Variable {} is undefined.\n", name));
+    }
+
+    // Resolve a binding
+    [[nodiscard]] auto resolve(const std::string& name) -> JSBasicValue {
+        // Similar to assignment the runtime starts by checking the current scope
+        // if the binding is found we return the value. Otherwise we move to the
+        // parent scope.
+        fmt::print("Current index: {}\n", currIdx);
+        auto idx = currIdx;
+        while (idx != -1) {
+            fmt::print("Loop index: {}\n", idx);
+            // If the variable existis within this scope we return it.
+            if (symTables[idx].resolveBinding(name) != std::nullopt) {
+                return symTables[idx].resolveBinding(name).value();
+            }
+            // If the variable wasn't found in the current scope we move its
+            // parent.
+            idx = symTables[idx].getParentPtr();
+        }
+        // If the variable isn't found in the existing scopes we throw a runtime
+        // error.
+        throw std::runtime_error(
+            fmt::format("Variable {} is undefined.\n", name));
+    }
 
     /// Run a sequence of statements (a program).
     auto run(const std::vector<std::shared_ptr<JSStmt>>& stmts) -> void;
@@ -33,8 +99,7 @@ class Interpreter : public Visitor {
     /// Execute a single statement.
     auto execute(JSStmt* stmt) -> void;
     /// Execute a block (sequence of statements)
-    auto executeBlock(JSBlockStmt* block, std::unique_ptr<Environment> env)
-        -> void;
+    auto executeBlock(JSBlockStmt* block, Environment env) -> void;
 
     /// Visit a literal expression.
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
@@ -63,7 +128,13 @@ class Interpreter : public Visitor {
 #ifdef DEBUG_INTERPRETER_ENV
 
     auto getEnv(const JSToken& name) -> JSBasicValue {
-        return env->resolveBinding(name);
+        if (symTables[currIdx].resolveBinding(name.getLexeme()) !=
+            std::nullopt) {
+            return symTables[currIdx].resolveBinding(name.getLexeme()).value();
+        }
+
+        fmt::print("Value undefined .\n");
+        return {nullptr};
     }
 
 #endif
@@ -93,25 +164,31 @@ class Interpreter : public Visitor {
         return true;
     }
 
-    private:
-    /// Runtime environment.
-    std::unique_ptr<Environment> env;
-
-    // EnvGuard.
-    class EnvGuard {
-        public:
-        EnvGuard(Interpreter& interpreter, std::unique_ptr<Environment> env)
-            : interpreter(interpreter) {
-            previous        = std::move(interpreter.env);
-            interpreter.env = std::move(env);
-        }
-
-        ~EnvGuard() { interpreter.env = std::move(previous); }
-
-        private:
-        Interpreter& interpreter;
-        std::unique_ptr<Environment> previous;
-    };
+    /// Environment
+    std::vector<Environment> symTables;
+    /// Pointer to the current environment.
+    EnvPtr currIdx;
+    /// Runtime environment :
+    /// We have a stack of environment, the stack is always populated with
+    /// at least one top level environment (the global environment)
+    /// Upon entering a block statement, we push a new environment to the
+    /// stack, this environment is for the new inner scope.
+    /// Upon exiting a block statement we pop the inner environment from
+    /// the stack.
+    /// When assigning a new variable you first check if its defined
+    /// in the global scope, if it isn't defined we move the next one
+    /// and try to define it there. If we reach the end it means the variable
+    /// is undefined.
+    /// When resolving a binding, we check the outermost scope if it's not
+    /// found there we check the next one, when reaching the end we throw
+    /// an undefined variable error.
+    /// using Env = map<string, JSBasicValue>
+    /// using RuntimeEnv = std::vector<Env>
+    /// assign -> void { for env in RuntimeEnv } if env.contains(name) then
+    /// env[name] = value; return } else throw runtime error
+    /// resolve -> JSValue { for env in RuntimeEnv } if env.contains(name)
+    /// then return env[name]; else throw runtime error.
+    // std::unique_ptr<Environment> env;
 };
 
 } // namespace minijsc
