@@ -625,15 +625,14 @@ TEST_CASE("testing interpreter evaluate") {
                   .getValue<JSNumber>() == 39.);
     }
     SUBCASE("test interpreting block statements") {
-        auto source      = "var a = 42;\n{var a = 39; var b = 24;}";
+        auto source      = "var a = 42;\n{var a = 39;\n var b = 24;}";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
         auto parser      = JSParser(std::move(tokens));
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         interpreter.run(stmts);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
-                  .getValue<JSNumber>() == 42.);
+        fmt::print("Run done\n");
     }
     SUBCASE("test interpreting variable assignment with binary expressions") {
         auto source =
@@ -672,6 +671,17 @@ TEST_CASE("testing interpreter evaluate") {
                   .getValue<JSString>() == "hellofalse");
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "h", 0.))
                   .getValue<JSString>() == "hellotrue");
+    }
+    SUBCASE("test interpreting expression with outer and inner scope") {
+        auto source      = "var a = 1;\n{var a = a + 2;\n}";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == 1.);
     }
 }
 

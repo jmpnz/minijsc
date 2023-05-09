@@ -23,7 +23,12 @@ auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
 /// Interpreter visits a block statement executing the statements within
 /// the block.
 auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
-    executeBlock(block.get(), std::make_unique<Environment>());
+    fmt::print("visitBlockStmt\n");
+    assert(block.get() != nullptr);
+    assert(env.get() != nullptr);
+    fmt::print("All pointers are good\n");
+    executeBlock(block->getStmts(), env.get());
+    fmt::print("Done processing block\n");
 }
 
 /// Interpreter visits variable declarations defining bindings in the runtime
@@ -43,6 +48,8 @@ auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
 /// Interpreter visits variable expressions returning the value.
 auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
     -> JSBasicValue {
+    fmt::print("Resolving variable expression: {}\n",
+               expr->getName().getLexeme());
     return env->resolveBinding(expr->getName());
 }
 
@@ -52,7 +59,7 @@ auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
     auto value = evaluate(expr->getValue().get());
     fmt::print("Visit assign expr: {}\n", value.toString());
-    env->defineBinding(expr->getName().getLexeme(), value);
+    env->assign(expr->getName().getLexeme(), value);
     return value;
 }
 
@@ -148,7 +155,8 @@ auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
         }
     } catch (const std::runtime_error& e) {
         fmt::print("Runtime error : {}", e.what());
-        return;
+        // TODO: move try/catch to outer scope
+        throw e;
     }
 }
 
