@@ -1,4 +1,4 @@
 # Ignore tests & the doctest library
-tests/
+tests/*
 # Ignore third party libraries
-third_party/
+third_party/*

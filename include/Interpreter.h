@@ -54,8 +54,7 @@ class Interpreter : public Visitor {
         while (idx != -1) {
             // If the variable exists this scope, try and create an assignment.
             if (symTables[idx].resolveBinding(name) != std::nullopt) {
-                auto ok = symTables[idx].assign(name, value); //NOLINT
-                if (ok) {
+                if (symTables[idx].assign(name, value)) {
                     // If the assignment is successful return.
                     return;
                 }
@@ -69,14 +68,12 @@ class Interpreter : public Visitor {
     }
 
     // Resolve a binding
-    [[nodiscard]] auto resolve(const std::string& name) -> JSBasicValue {
+    auto resolve(const std::string& name) -> JSBasicValue {
         // Similar to assignment the runtime starts by checking the current scope
         // if the binding is found we return the value. Otherwise we move to the
         // parent scope.
-        fmt::print("Current index: {}\n", currIdx);
         auto idx = currIdx;
         while (idx != -1) {
-            fmt::print("Loop index: {}\n", idx);
             // If the variable existis within this scope we return it.
             if (symTables[idx].resolveBinding(name) != std::nullopt) {
                 return symTables[idx].resolveBinding(name).value();
@@ -164,31 +161,27 @@ class Interpreter : public Visitor {
         return true;
     }
 
-    /// Environment
+    private:
+    /// Runtime environment is designed following the same ideas of spaghetti
+    /// stack. We have a stack of environments, the stack is always populated
+    /// with at least one top level environment (the global environment).
+    ///
+    /// Upon entering a block statement, we push a new environment to the stack
+    /// this environment is for defining bindings in the new inner scope.
+    /// Upon exiting a block statement we pop the inner environment from
+    /// the stack and restore the runtime's pointer (`currIdx`).
+    ///
+    /// When assigning a variable you first check if its defined in the global
+    /// scope, if it isn't defined we move the outer scope using the parent
+    /// pointer and assign it there.
+    /// If we reach the top level scope without making an assignment it means
+    /// the variable is undefined, the same process is used for resolving
+    /// bindings.
+    ///
+    /// Runtime environment is a stack of symbol tables.
     std::vector<Environment> symTables;
     /// Pointer to the current environment.
     EnvPtr currIdx;
-    /// Runtime environment :
-    /// We have a stack of environment, the stack is always populated with
-    /// at least one top level environment (the global environment)
-    /// Upon entering a block statement, we push a new environment to the
-    /// stack, this environment is for the new inner scope.
-    /// Upon exiting a block statement we pop the inner environment from
-    /// the stack.
-    /// When assigning a new variable you first check if its defined
-    /// in the global scope, if it isn't defined we move the next one
-    /// and try to define it there. If we reach the end it means the variable
-    /// is undefined.
-    /// When resolving a binding, we check the outermost scope if it's not
-    /// found there we check the next one, when reaching the end we throw
-    /// an undefined variable error.
-    /// using Env = map<string, JSBasicValue>
-    /// using RuntimeEnv = std::vector<Env>
-    /// assign -> void { for env in RuntimeEnv } if env.contains(name) then
-    /// env[name] = value; return } else throw runtime error
-    /// resolve -> JSValue { for env in RuntimeEnv } if env.contains(name)
-    /// then return env[name]; else throw runtime error.
-    // std::unique_ptr<Environment> env;
 };
 
 } // namespace minijsc

@@ -683,6 +683,18 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 1.);
     }
+    SUBCASE(
+        "test interpreting expression with outer and multiple inner scopes") {
+        auto source      = "var a = 1;\n{var a = a + 2;\n{var b = a + 3;}\n}";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == 1.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

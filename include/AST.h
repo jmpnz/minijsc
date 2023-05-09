@@ -1,5 +1,4 @@
 //===----------------------------------------------------------------------===//
-//
 // AST.h: This file defines classes and interfaces for representing AST nodes.
 // There are three core AST nodes (declarations, expressions and statements).
 //
