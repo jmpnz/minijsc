@@ -65,9 +65,9 @@ auto JSParser::parseVarDecl() -> std::shared_ptr<JSStmt> {
 auto JSParser::parseExprStmt() -> std::shared_ptr<JSStmt> {
     auto expr = parseExpr();
     fmt::print("parseExprStmt::\n");
-    std::cout << "Node Kind : " << astNodeKindToString(expr->getKind()) << '\n';
-    std::cout << "Current Token: " << tokens[current].toString() << '\n';
-    std::cout << "Peek Token: " << tokens[current + 1].toString() << '\n';
+    fmt::print("Node Kind : {}\n", astNodeKindToString(expr->getKind()));
+    fmt::print("Current Token: {}\n", tokens[current].toString());
+    fmt::print("Peek Token: {}\n", tokens[current + 1].toString());
     consume(JSTokenKind::Semicolon, "Expected ';' after expression");
     return std::make_shared<JSExprStmt>(expr);
 }

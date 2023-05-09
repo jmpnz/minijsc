@@ -2,7 +2,8 @@
 
 [ ] Review JS grammar file, ensure all tokens are handled and treat undefined as a keyword.
 
-[ ] Review value ownership and stack unwinding in environment guards
+[x] Review value ownership and stack unwinding in environment guards
+    [ ] Implement copy and move constructors for AST nodes
 
 [ ] Make the parser more robust add error handling for parser errors
 

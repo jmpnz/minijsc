@@ -602,6 +602,17 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 5.);
     }
+    SUBCASE("test interpreting variable declarations with binary expression") {
+        auto source      = "var a = 5;\nvar b = 37;\nvar c = a + b;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        interpreter.run(stmts);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "c", 0.))
+                  .getValue<JSNumber>() == 42.);
+    }
     SUBCASE("test interpreting variable assignment") {
         auto source      = "var a = 42;\n a = 39;";
         auto lexer       = JSLexer(source);
@@ -623,6 +634,27 @@ TEST_CASE("testing interpreter evaluate") {
         interpreter.run(stmts);
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 42.);
+    }
+    SUBCASE("test interpreting variable assignment with binary expressions") {
+        auto source =
+            "var a = 42;\n a = 37;\nvar b = 5;\nvar c = a + b;\n var "
+            "d = !true;\n var f = d == false;\na = -55;\n var g = a + c;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        interpreter.run(stmts);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == -55.);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "c", 0.))
+                  .getValue<JSNumber>() == 42.);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "d", 0.))
+                  .getValue<JSBoolean>() == false);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "f", 0.))
+                  .getValue<JSBoolean>() == true);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "g", 0.))
+                  .getValue<JSNumber>() == -13.);
     }
 }
 
