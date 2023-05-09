@@ -67,7 +67,6 @@ class Interpreter : public Visitor {
     }
 
 #endif
-
     /// Check truthiness of a value.
     static auto isTruthy(JSBasicValue value) -> bool {
         switch (value.getType()) {

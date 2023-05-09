@@ -30,10 +30,13 @@ auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
 /// environment.
 auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
     auto value = JSBasicValue();
-    if (stmt->getInitializer() != nullptr) {
+    if (stmt->getInitializer()) {
         value = evaluate(stmt->getInitializer().get());
+        fmt::print("Has initializer : {}\n", value.toString());
     }
     assert(env != nullptr);
+    fmt::print("Defining binding : {} -> {}\n", stmt->getName(),
+               value.toString());
     env->defineBinding(stmt->getName(), value);
 }
 
@@ -48,6 +51,7 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
 auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
     auto value = evaluate(expr->getValue().get());
+    fmt::print("Visit assign expr: {}\n", value.toString());
     env->defineBinding(expr->getName().getLexeme(), value);
     return value;
 }
@@ -66,9 +70,28 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
     auto binOp = expr->getOperator();
 
     switch (binOp.getKind()) {
-    case JSTokenKind::Plus:
-        // TODO: handle upcasting of string/number lhs or rhs.
-        return {lhs.getValue<JSNumber>() + rhs.getValue<JSNumber>()};
+    case JSTokenKind::Plus: {
+        // Overloading for the plus operator:
+        // 1. If both sides are strings concatenate them.
+        if (lhs.isString() && rhs.isString()) {
+            return {lhs.getValue<JSString>() + rhs.getValue<JSString>()};
+        }
+        // 2. If both sides are numbers sum them.
+        if (lhs.isNumber() && rhs.isNumber()) {
+            return {lhs.getValue<JSNumber>() + rhs.getValue<JSNumber>()};
+        }
+        // If one side is a string, cast the other side to a string.
+        if (lhs.isString()) {
+            return {lhs.getValue<JSString>() + rhs.toString()};
+        }
+        if (rhs.isString()) {
+            return {lhs.toString() + rhs.getValue<JSString>()};
+        }
+        // Throw a type error if none of the above.
+        throw std::runtime_error(
+            "Uncaught type error '+' unsupported for types : " +
+            lhs.toString() + " and " + rhs.toString());
+    }
     case JSTokenKind::Minus:
         return {lhs.getValue<JSNumber>() - rhs.getValue<JSNumber>()};
     case JSTokenKind::Star:

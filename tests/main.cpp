@@ -656,6 +656,23 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "g", 0.))
                   .getValue<JSNumber>() == -13.);
     }
+    SUBCASE("test interpreting expression (plus operator overload)") {
+        auto source      = "var a = \"hello\";\nvar b = false;\n var c = "
+                           "true;\n var d = 72;\n var e = 28;\nvar f = a + "
+                           "\"Bob\";\nvar g = a + b;\nvar h = a + c;\n";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        interpreter.run(stmts);
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "f", 0.))
+                  .getValue<JSString>() == "helloBob");
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "g", 0.))
+                  .getValue<JSString>() == "hellofalse");
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "h", 0.))
+                  .getValue<JSString>() == "hellotrue");
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

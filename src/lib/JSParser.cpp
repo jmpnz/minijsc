@@ -114,11 +114,8 @@ auto JSParser::parsePrimaryExpr() -> std::shared_ptr<JSExpr> {
     }
     if (match({JSTokenKind::Numeric, JSTokenKind::String,
                JSTokenKind::Undefined, JSTokenKind::Null})) {
-        fmt::print("JSParser::match(Numeric)\n");
-
-        auto literal = previous().getLiteral().getValue<double>();
-        fmt::print("Numeric(Literal({}))\n", literal);
-        return std::make_shared<JSLiteralExpr>(JSBasicValue(literal));
+        auto literal = previous().getLiteral();
+        return std::make_shared<JSLiteralExpr>(literal);
     }
     if (match(JSTokenKind::Identifier)) {
         fmt::print("JSParse::match(Identifier)");
