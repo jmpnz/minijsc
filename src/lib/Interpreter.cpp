@@ -1,8 +1,8 @@
 //===----------------------------------------------------------------------===//
 // Interpreter.cpp: This file implements the baseline interpreter for minijsc.
 //===----------------------------------------------------------------------===//
-#include "Interpreter.h"
 #include "AST.h"
+#include "Interpreter.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "Runtime.h"
@@ -18,6 +18,18 @@ namespace minijsc {
 /// and returning.
 auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
     evaluate(stmt->getExpr().get());
+}
+
+/// Interpreter visits an if statement, evaluating the conditional expression
+/// and dispatching execution to either the then or else branch.
+auto Interpreter::visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void {
+    auto expr = evaluate(stmt->getCondition().get());
+    if (isTruthy(expr) && stmt->getThenBranch().get()) {
+        return execute(stmt->getThenBranch().get());
+    }
+    if (!isTruthy(expr) && stmt->getElseBranch().get()) {
+        return execute(stmt->getElseBranch().get());
+    }
 }
 
 /// Interpreter visits a block statement executing the statements within
@@ -186,8 +198,6 @@ auto Interpreter::executeBlock(JSBlockStmt* block, Environment env) -> void {
         // back the previous index
         execute(stmt.get());
     }
-    // TODO: unwind runtime environments stack here as well
-    //
     // saveguard parent scope ptr before destroying the current scope
     auto parent = this->symTables[currIdx].getParentPtr();
     // pop the env from the stack

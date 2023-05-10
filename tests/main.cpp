@@ -695,6 +695,28 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 1.);
     }
+    SUBCASE("test interpreting conditional expressions") {
+        auto source      = "var a = 1;\nif (true){a = 2;}";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == 2.);
+    }
+    SUBCASE("test interpreting conditional expressions with else branch") {
+        auto source      = "var a = 1;\nif (false){a = 2;} else { a = 3; }";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+                  .getValue<JSNumber>() == 3.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

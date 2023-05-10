@@ -102,6 +102,9 @@ class JSParser {
     // Parse a block statement.
     auto parseBlockStmt() -> std::shared_ptr<JSBlockStmt>;
 
+    // Parse an if statement.
+    auto parseIfStmt() -> std::shared_ptr<JSIfStmt>;
+
     // Parse an expression statement.
     auto parseExprStmt() -> std::shared_ptr<JSStmt>;
 

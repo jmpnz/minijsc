@@ -120,6 +120,8 @@ class Interpreter : public Visitor {
     auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
     /// Visit an expression statement.
     auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void override;
+    /// Visit an if statement.
+    auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void override;
     /// Visit a variable declaration.
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
 

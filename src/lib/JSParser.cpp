@@ -1,5 +1,5 @@
-#include "JSParser.h"
 #include "AST.h"
+#include "JSParser.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "fmt/core.h"
@@ -24,6 +24,9 @@ auto JSParser::parse() -> std::vector<std::shared_ptr<JSStmt>> {
 }
 
 auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
+    if (match(JSTokenKind::If)) {
+        return parseIfStmt();
+    }
     if (match(JSTokenKind::LBrace)) {
         return parseBlockStmt();
     }
@@ -39,6 +42,23 @@ auto JSParser::parseBlockStmt() -> std::shared_ptr<JSBlockStmt> {
 
     consume(JSTokenKind::RBrace, "Expected '}' after block.");
     return std::make_shared<JSBlockStmt>(statements);
+}
+
+auto JSParser::parseIfStmt() -> std::shared_ptr<JSIfStmt> {
+    // Consume opening parenthesis for the condition block.
+    consume(JSTokenKind::LParen, "Expected '(' after if.");
+    // Parse conditional expression.
+    auto condition = parseExpr();
+    // Consume closing parenthesis for the condition block.
+    consume(JSTokenKind::RParen, "Expected ')' after expression.");
+    // Parse the then branch statement.
+    auto thenBranch = parseStmt();
+    if (match(JSTokenKind::Else)) {
+        auto elseBranch = parseStmt();
+        return std::make_shared<JSIfStmt>(condition, thenBranch, elseBranch);
+    }
+    // If there's no else branch we set the else branch statement to nullptr.
+    return std::make_shared<JSIfStmt>(condition, thenBranch, nullptr);
 }
 
 auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {

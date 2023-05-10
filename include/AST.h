@@ -30,6 +30,7 @@ class JSVarExpr;
 class JSAssignExpr;
 class JSVarDecl;
 class JSExprStmt;
+class JSIfStmt;
 class JSBlockStmt;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
@@ -66,6 +67,7 @@ struct Visitor {
     // virtual auto visitVariableExpr(Variable expr) -> R = 0;
     virtual auto visitBlockStmt(std::shared_ptr<JSBlockStmt> stmt) -> void = 0;
     virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
+    virtual auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void       = 0;
     virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
 };
 
@@ -89,7 +91,8 @@ enum class ASTNodeKind {
     BlockStmt,
     // Expression statement.
     ExprStmt,
-
+    // If statement.
+    IfStmt,
 };
 
 /// Returns a textual representation of the AST node kind.
@@ -113,6 +116,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "BlockStmt";
     case ASTNodeKind::ExprStmt:
         return "ExprStmt";
+    case ASTNodeKind::IfStmt:
+        return "IfStmt";
     }
 }
 
@@ -179,7 +184,7 @@ class JSBlockStmt : public JSStmt {
     explicit JSBlockStmt(std::vector<std::shared_ptr<JSStmt>> stmts)
         : stmts(std::move(stmts)) {}
 
-    auto getKind() -> ASTNodeKind override { return ASTNodeKind::BlockStmt; };
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::BlockStmt; }
 
     auto getStmts() -> std::vector<std::shared_ptr<JSStmt>> { return stmts; }
 
@@ -192,6 +197,43 @@ class JSBlockStmt : public JSStmt {
     private:
     // Statements associated to the block.
     std::vector<std::shared_ptr<JSStmt>> stmts;
+};
+
+/// If statements for conditional branching.
+class JSIfStmt : public JSStmt {
+    public:
+    // If statement constructor takes the conditional expression and the branch
+    // statements to execute. For `If` statements we only require the block
+    // statement for the branch that follows, the else branch will be optional.
+    explicit JSIfStmt(std::shared_ptr<JSExpr> expr,
+                      std::shared_ptr<JSStmt> thenBranch,
+                      std::shared_ptr<JSStmt> elseBranch)
+        : condition(std::move(expr)), thenBranch(std::move(thenBranch)),
+          elseBranch(std::move(elseBranch)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::IfStmt; }
+
+    auto getCondition() -> std::shared_ptr<JSExpr> { return condition; }
+
+    auto getThenBranch() -> std::shared_ptr<JSStmt> { return thenBranch; }
+
+    auto getElseBranch() -> std::shared_ptr<JSStmt> { return elseBranch; }
+
+    auto accept(Visitor* visitor) -> void override {
+        fmt::print("JSIfStmt::accept\n");
+        return visitor->visitIfStmt(
+            std::static_pointer_cast<JSIfStmt>(shared_from_this()));
+    }
+
+    private:
+    // Expression for the conditional branch.
+    std::shared_ptr<JSExpr> condition;
+    // Then branch statement, executed in case the conditional expression
+    // evaluates to true.
+    std::shared_ptr<JSStmt> thenBranch;
+    // Else branch statement, executed in case the conditional expression
+    // evalutes to false.
+    std::shared_ptr<JSStmt> elseBranch;
 };
 
 /// Variable declarations are statements that create runtime bindings
