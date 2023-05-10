@@ -33,6 +33,7 @@ class JSExprStmt;
 class JSIfStmt;
 class JSBlockStmt;
 class JSWhileStmt;
+class JSForStmt;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
 /// by an AST consumer. There are three AST consumers defined currently
@@ -70,6 +71,7 @@ struct Visitor {
     virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
     virtual auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void       = 0;
     virtual auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void = 0;
+    virtual auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void     = 0;
     virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
 };
 
@@ -97,6 +99,8 @@ enum class ASTNodeKind {
     IfStmt,
     // While statement.
     WhileStmt,
+    // For statement.
+    ForStmt,
 };
 
 /// Returns a textual representation of the AST node kind.
@@ -124,6 +128,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "IfStmt";
     case ASTNodeKind::WhileStmt:
         return "WhileStmt";
+    case ASTNodeKind::ForStmt:
+        return "ForStmt";
     }
 }
 
@@ -267,6 +273,45 @@ class JSWhileStmt : public JSStmt {
     // Expression for the conditional branch.
     std::shared_ptr<JSExpr> condition;
     // Block statement to execute in case the expression evaluates to true.
+    std::shared_ptr<JSStmt> body;
+};
+
+// For statements for loops.
+class JSForStmt : public JSStmt {
+    public:
+    // For statement constructor takes the initializer, stopping condition
+    // and the step expression. Finally the body of the loop.
+    explicit JSForStmt(std::shared_ptr<JSStmt> initializer,
+                       std::shared_ptr<JSExpr> condition,
+                       std::shared_ptr<JSExpr> step,
+                       std::shared_ptr<JSStmt> body)
+        : initializer(std::move(initializer)), condition(std::move(condition)),
+          step(std::move(step)), body(std::move(body)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::ForStmt; }
+
+    auto getInitializer() -> std::shared_ptr<JSStmt> { return initializer; }
+
+    auto getCondition() -> std::shared_ptr<JSExpr> { return condition; }
+
+    auto getStep() -> std::shared_ptr<JSExpr> { return step; }
+
+    auto getBody() -> std::shared_ptr<JSStmt> { return body; }
+
+    auto accept(Visitor* visitor) -> void override {
+        fmt::print("JSForStmt::accept\n");
+        return visitor->visitForStmt(
+            std::static_pointer_cast<JSForStmt>(shared_from_this()));
+    }
+
+    private:
+    // Expression for the initializer, which can be null.
+    std::shared_ptr<JSStmt> initializer;
+    // Expression for the stopping condition.
+    std::shared_ptr<JSExpr> condition;
+    // Expression for the step.
+    std::shared_ptr<JSExpr> step;
+    // Body of the loop.
     std::shared_ptr<JSStmt> body;
 };
 

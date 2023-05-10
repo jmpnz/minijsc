@@ -729,6 +729,31 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
                   .getValue<JSNumber>() == 10.);
     }
+    SUBCASE("test interpreting for loop with variable declaration") {
+        auto source = "var sum = 0;\nfor (var i = 0;i < 10;i = i + 1) { sum = "
+                      "sum + 1; }\n";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto stmts  = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+                  .getValue<JSNumber>() == 10.);
+    }
+    SUBCASE("test interpreting for loop with pre-variable declaration") {
+        auto source =
+            "var sum = 0;\nvar i = -1;\nfor (i = 0;i < 10;i = i + 1) { sum = "
+            "sum + 1; }\n";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+                  .getValue<JSNumber>() == 10.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

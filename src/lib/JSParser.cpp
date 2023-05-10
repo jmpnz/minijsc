@@ -1,5 +1,5 @@
-#include "AST.h"
 #include "JSParser.h"
+#include "AST.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "fmt/core.h"
@@ -29,6 +29,9 @@ auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
     }
     if (match(JSTokenKind::While)) {
         return parseWhileStmt();
+    }
+    if (match(JSTokenKind::For)) {
+        return parseForStmt();
     }
     if (match(JSTokenKind::LBrace)) {
         return parseBlockStmt();
@@ -75,6 +78,36 @@ auto JSParser::parseWhileStmt() -> std::shared_ptr<JSWhileStmt> {
     auto body = parseStmt();
     // Create AST node for while statement.
     return std::make_shared<JSWhileStmt>(condition, body);
+}
+
+auto JSParser::parseForStmt() -> std::shared_ptr<JSForStmt> {
+    // Consume opening parenthesis for the condition block.
+    consume(JSTokenKind::LParen, "Expected '(' after for.");
+    // Parse the initializer.
+    std::shared_ptr<JSStmt> initializer;
+    if (match(JSTokenKind::Semicolon)) {
+        initializer = nullptr;
+    } else if (match(JSTokenKind::Var)) {
+        initializer = parseVarDecl();
+    } else {
+        initializer = parseExprStmt();
+    }
+    // Parse the condition.
+    std::shared_ptr<JSExpr> condition;
+    if (!check(JSTokenKind::Semicolon)) {
+        condition = parseExpr();
+    }
+    consume(JSTokenKind::Semicolon, "Expected ';' after condition.");
+    // Parse the step.
+    std::shared_ptr<JSExpr> step;
+    if (!check(JSTokenKind::RParen)) {
+        step = parseExpr();
+    }
+    consume(JSTokenKind::RParen, "Expected ')' after for clause.");
+    // Parse the loop body.
+    auto body = parseStmt();
+
+    return std::make_shared<JSForStmt>(initializer, condition, step, body);
 }
 
 auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {

@@ -124,6 +124,8 @@ class Interpreter : public Visitor {
     auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void override;
     /// Visit a while statement.
     auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void override;
+    /// Visit a for statement.
+    auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void override;
     /// Visit a variable declaration.
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
 

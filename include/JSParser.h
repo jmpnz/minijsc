@@ -108,6 +108,9 @@ class JSParser {
     // Parse a while statement.
     auto parseWhileStmt() -> std::shared_ptr<JSWhileStmt>;
 
+    // Parse a for statement.
+    auto parseForStmt() -> std::shared_ptr<JSForStmt>;
+
     // Parse an expression statement.
     auto parseExprStmt() -> std::shared_ptr<JSStmt>;
 

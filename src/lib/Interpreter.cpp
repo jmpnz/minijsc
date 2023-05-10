@@ -40,6 +40,21 @@ auto Interpreter::visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void {
     }
 }
 
+/// Interpreter visits a for statement, evaluating the condition expression on
+/// each iteration and executing the loop body.
+auto Interpreter::visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void {
+    // Execute the initializer statement, which will either create the variable
+    // or the assignment.
+    execute(stmt->getInitializer().get());
+    // Evaluate the condition.
+    while (isTruthy(evaluate(stmt->getCondition().get()))) {
+        // Execute the statement block.
+        execute(stmt->getBody().get());
+        // Execute the step.
+        evaluate(stmt->getStep().get());
+    }
+}
+
 /// Interpreter visits a block statement executing the statements within
 /// the block.
 auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
@@ -185,7 +200,12 @@ auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
 }
 
 /// Execute a single statement.
-auto Interpreter::execute(JSStmt* stmt) -> void { return stmt->accept(this); }
+auto Interpreter::execute(JSStmt* stmt) -> void {
+    if (stmt == nullptr) {
+        return;
+    }
+    return stmt->accept(this);
+}
 
 /// Execute a block.
 auto Interpreter::executeBlock(JSBlockStmt* block, Environment env) -> void {
