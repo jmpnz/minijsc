@@ -754,6 +754,18 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
                   .getValue<JSNumber>() == 10.);
     }
+    SUBCASE("test interpreting for loop with  in-loop step") {
+        auto source      = "var sum = 0;\nvar i = 0;\nfor (;i < 10;) { sum = "
+                           "sum + 1;i = i +1; }\n";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+                  .getValue<JSNumber>() == 10.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

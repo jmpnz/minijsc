@@ -1,8 +1,8 @@
 //===----------------------------------------------------------------------===//
 // Interpreter.cpp: This file implements the baseline interpreter for minijsc.
 //===----------------------------------------------------------------------===//
-#include "AST.h"
 #include "Interpreter.h"
+#include "AST.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "Runtime.h"
@@ -196,15 +196,17 @@ auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
 
 /// Evaluate expressions.
 auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
-    return expr->accept(this);
+    if (expr != nullptr) {
+        return expr->accept(this);
+    }
+    return {};
 }
 
 /// Execute a single statement.
 auto Interpreter::execute(JSStmt* stmt) -> void {
-    if (stmt == nullptr) {
-        return;
+    if (stmt != nullptr) {
+        stmt->accept(this);
     }
-    return stmt->accept(this);
 }
 
 /// Execute a block.
