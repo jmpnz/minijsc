@@ -45,7 +45,7 @@ class Interpreter : public Visitor {
     }
 
     /// Assign abinding.
-    auto assign(const std::string& name, JSBasicValue value) -> void {
+    auto assign(const std::string& name, const JSBasicValue& value) -> void {
         // In order to create an assignment we need to check scopes
         // in the reverse order they were created in.
         // Starting from the current scope and iterating until we reach
@@ -75,8 +75,9 @@ class Interpreter : public Visitor {
         auto idx = currIdx;
         while (idx != -1) {
             // If the variable existis within this scope we return it.
-            if (symTables[idx].resolveBinding(name) != std::nullopt) {
-                return symTables[idx].resolveBinding(name).value();
+            auto opt = symTables[idx].resolveBinding(name);
+            if (opt.has_value()) {
+                return opt.value();
             }
             // If the variable wasn't found in the current scope we move its
             // parent.
@@ -125,9 +126,9 @@ class Interpreter : public Visitor {
 #ifdef DEBUG_INTERPRETER_ENV
 
     auto getEnv(const JSToken& name) -> JSBasicValue {
-        if (symTables[currIdx].resolveBinding(name.getLexeme()) !=
-            std::nullopt) {
-            return symTables[currIdx].resolveBinding(name.getLexeme()).value();
+        auto opt = symTables[currIdx].resolveBinding(name.getLexeme());
+        if (opt.has_value()) {
+            return opt.value();
         }
 
         fmt::print("Value undefined .\n");

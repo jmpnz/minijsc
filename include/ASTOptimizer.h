@@ -12,7 +12,6 @@
 #define AST_OPTIMIZER_H
 #include "AST.h"
 
-
 namespace minijsc {
 
 /// Constant folding optimizer implements constant folding optimizations
@@ -25,10 +24,7 @@ class ConstantFoldingOptimizer {
     /// the optimizer resolves any constant literals in unary or binary
     /// expressions and executes a folding pass.
     auto rewriteAST(JSExpr* expr) -> void;
-}
-
-
-
+};
 
 } // namespace minijsc
 
