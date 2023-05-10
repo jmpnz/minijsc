@@ -27,6 +27,9 @@ auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
     if (match(JSTokenKind::If)) {
         return parseIfStmt();
     }
+    if (match(JSTokenKind::While)) {
+        return parseWhileStmt();
+    }
     if (match(JSTokenKind::LBrace)) {
         return parseBlockStmt();
     }
@@ -59,6 +62,19 @@ auto JSParser::parseIfStmt() -> std::shared_ptr<JSIfStmt> {
     }
     // If there's no else branch we set the else branch statement to nullptr.
     return std::make_shared<JSIfStmt>(condition, thenBranch, nullptr);
+}
+
+auto JSParser::parseWhileStmt() -> std::shared_ptr<JSWhileStmt> {
+    // Consume opening parenthesis for the condition block.
+    consume(JSTokenKind::LParen, "Expected '(' after while.");
+    // Parse conditional expression.
+    auto condition = parseExpr();
+    // Consume closing parenthesis for the condition block.
+    consume(JSTokenKind::RParen, "Expected ')' after expression.");
+    // Parse statement body.
+    auto body = parseStmt();
+    // Create AST node for while statement.
+    return std::make_shared<JSWhileStmt>(condition, body);
 }
 
 auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {

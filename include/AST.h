@@ -32,6 +32,7 @@ class JSVarDecl;
 class JSExprStmt;
 class JSIfStmt;
 class JSBlockStmt;
+class JSWhileStmt;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
 /// by an AST consumer. There are three AST consumers defined currently
@@ -68,6 +69,7 @@ struct Visitor {
     virtual auto visitBlockStmt(std::shared_ptr<JSBlockStmt> stmt) -> void = 0;
     virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
     virtual auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void       = 0;
+    virtual auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void = 0;
     virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
 };
 
@@ -93,6 +95,8 @@ enum class ASTNodeKind {
     ExprStmt,
     // If statement.
     IfStmt,
+    // While statement.
+    WhileStmt,
 };
 
 /// Returns a textual representation of the AST node kind.
@@ -118,6 +122,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "ExprStmt";
     case ASTNodeKind::IfStmt:
         return "IfStmt";
+    case ASTNodeKind::WhileStmt:
+        return "WhileStmt";
     }
 }
 
@@ -234,6 +240,34 @@ class JSIfStmt : public JSStmt {
     // Else branch statement, executed in case the conditional expression
     // evalutes to false.
     std::shared_ptr<JSStmt> elseBranch;
+};
+
+/// While statements for looping control flow.
+class JSWhileStmt : public JSStmt {
+    public:
+    // While statement constructor takes the conditional expression and
+    // the block to execute if it evaluates to true.
+    explicit JSWhileStmt(std::shared_ptr<JSExpr> expr,
+                         std::shared_ptr<JSStmt> stmt)
+        : condition(std::move(expr)), body(std::move(stmt)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::WhileStmt; }
+
+    auto getCondition() -> std::shared_ptr<JSExpr> { return condition; }
+
+    auto getBody() -> std::shared_ptr<JSStmt> { return body; }
+
+    auto accept(Visitor* visitor) -> void override {
+        fmt::print("JSWhileStmt::accept\n");
+        return visitor->visitWhileStmt(
+            std::static_pointer_cast<JSWhileStmt>(shared_from_this()));
+    }
+
+    private:
+    // Expression for the conditional branch.
+    std::shared_ptr<JSExpr> condition;
+    // Block statement to execute in case the expression evaluates to true.
+    std::shared_ptr<JSStmt> body;
 };
 
 /// Variable declarations are statements that create runtime bindings

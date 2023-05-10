@@ -24,11 +24,19 @@ auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
 /// and dispatching execution to either the then or else branch.
 auto Interpreter::visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void {
     auto expr = evaluate(stmt->getCondition().get());
-    if (isTruthy(expr) && stmt->getThenBranch().get()) {
+    if (isTruthy(expr) && (stmt->getThenBranch() != nullptr)) {
         return execute(stmt->getThenBranch().get());
     }
-    if (!isTruthy(expr) && stmt->getElseBranch().get()) {
+    if (!isTruthy(expr) && (stmt->getElseBranch() != nullptr)) {
         return execute(stmt->getElseBranch().get());
+    }
+}
+
+/// Interpreter visits a while statement, evaluating the conditional expression
+/// and executing the loop body if it evaluates to true.
+auto Interpreter::visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void {
+    while (isTruthy(evaluate(stmt->getCondition().get()))) {
+        execute(stmt->getBody().get());
     }
 }
 
