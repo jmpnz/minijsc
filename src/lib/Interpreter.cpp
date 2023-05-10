@@ -1,8 +1,10 @@
 //===----------------------------------------------------------------------===//
 // Interpreter.cpp: This file implements the baseline interpreter for minijsc.
+// The interpreter implements the visitor pattern declared in AST.h each visit
+// method implements an evaluation pattern depending on the visited node kind.
 //===----------------------------------------------------------------------===//
-#include "Interpreter.h"
 #include "AST.h"
+#include "Interpreter.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "Runtime.h"
@@ -14,14 +16,15 @@
 
 namespace minijsc {
 
-/// Interpreter visits expression statements evaluating the expression
-/// and returning.
+/// Expression statement nodes are evaluated when visited.
 auto Interpreter::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
     evaluate(stmt->getExpr().get());
 }
 
-/// Interpreter visits an if statement, evaluating the conditional expression
-/// and dispatching execution to either the then or else branch.
+/// Processing If statement nodes start by evaluating the conditional expression
+/// depending on the results of evaluation we dispatch execution to either
+/// the branch after the if statement or the branch after the else statement.
+/// If no else statement is provided we simply return.
 auto Interpreter::visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void {
     auto expr = evaluate(stmt->getCondition().get());
     if (isTruthy(expr) && (stmt->getThenBranch() != nullptr)) {
@@ -32,16 +35,22 @@ auto Interpreter::visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void {
     }
 }
 
-/// Interpreter visits a while statement, evaluating the conditional expression
-/// and executing the loop body if it evaluates to true.
+/// While statement nodes are evaluated in two steps. First we evaluate the
+/// conditional expression, this needs to be done on each iteration and can't
+/// be optimized away. Once the conditional expression is evaluated we check
+/// its truth value. As long as the condition evaluates to `true` we execute
+/// the statements in the loop body.
 auto Interpreter::visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void {
     while (isTruthy(evaluate(stmt->getCondition().get()))) {
         execute(stmt->getBody().get());
     }
 }
 
-/// Interpreter visits a for statement, evaluating the condition expression on
-/// each iteration and executing the loop body.
+/// For statements are evaluated similarly to while loops, we first execute
+/// the initializer statement which loads declarations or assignments into
+/// the execution scope. After the initializer is executed we repeat the same
+/// pattern we did for the while loop, only this time after executing the body
+/// of the loop we also evaluate the step expression.
 auto Interpreter::visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void {
     // Execute the initializer statement, which will either create the variable
     // or the assignment.
@@ -55,8 +64,11 @@ auto Interpreter::visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void {
     }
 }
 
-/// Interpreter visits a block statement executing the statements within
-/// the block.
+/// Block statements require us to define a new scope, predefined by curly
+/// braces. On each entry to a block statement we create a new environment
+/// for the inner scope that references the top level environment scope.
+/// After exiting the block statement the inner scope environment is cleaned
+/// up and the pointer to the current environment is restored.
 auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
     fmt::print("visitBlockStmt\n");
     fmt::print("All pointers are good\n");
@@ -65,8 +77,9 @@ auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
     fmt::print("Done processing block\n");
 }
 
-/// Interpreter visits variable declarations defining bindings in the runtime
-/// environment.
+/// Variable declarations can either have an initial value or are assigned
+/// the `null` value. Once the assignment expression is evaluated a new
+/// binding is defined in the current environment.
 auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
     auto value = JSBasicValue();
     if (stmt->getInitializer()) {
@@ -78,7 +91,9 @@ auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
     define(stmt->getName(), value);
 }
 
-/// Interpreter visits variable expressions returning the value.
+/// Variable expressions return the value of the variable we do that by
+/// resolving the binding in starting from the current environment, walking
+/// bottom up to the top level environment.
 auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
     -> JSBasicValue {
     fmt::print("Resolving variable expression: {}\n",
@@ -87,8 +102,10 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
     return resolve(expr->getName().getLexeme());
 }
 
-/// Interpreter visits assignment expression, evaluating the right handside
-/// and assigning it to the left handside.
+/// Assignment expressions will assign an expression's value to the variable
+/// on the left hand side, similarly to variable expression we walk proceed
+/// bottom up through the environment scopes. If the variable isn't found
+/// a runtime error is thrown.
 auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
     auto value = evaluate(expr->getValue().get());
@@ -97,13 +114,15 @@ auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     return value;
 }
 
-/// Interpreter visits literal expressions returning the wrapped value.
+/// Literal expressions will simply return the literal value.
 auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
     -> JSBasicValue {
     return expr->getValue();
 }
 
-/// Interpreter visits binary expressions returning result of evaluation.
+/// Binary expressions are processed by evaluating the left and right hand
+/// sides of the expression. The rules used for evaluation follow JavaScript's
+/// rules, we upcast depending on the values of either sides of the expression.
 auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
     -> JSBasicValue {
     auto lhs   = evaluate(expr->getLeft().get());
@@ -157,7 +176,8 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
     }
 }
 
-/// Interpreter visits unary expressions returning result of evaluation.
+/// Unary expressions are processed by evaluating the righyt hand side
+/// of the expression and executing the operator on the left hand side.
 auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
     -> JSBasicValue {
     auto rhs     = evaluate(expr->getRight().get());
@@ -174,13 +194,15 @@ auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
     }
 }
 
-/// Interpreter visits grouping expression evaluating the grouped expression.
+/// Grouping expressions are processed recursively by evaluating the expression
+/// in the grouping.
 auto Interpreter::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
     -> JSBasicValue {
     return evaluate(expr->getExpr().get());
 }
 
-/// Run the interpreter evaluation loop.
+/// Interpreter core loop, takes a program which is a sequence of statements
+/// executing them one by one.
 auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
     -> void {
     try {
@@ -194,7 +216,7 @@ auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
     }
 }
 
-/// Evaluate expressions.
+/// Evaluating expressions calls the accept method on the passed expressions.
 auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
     if (expr != nullptr) {
         return expr->accept(this);
@@ -202,14 +224,16 @@ auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
     return {};
 }
 
-/// Execute a single statement.
+/// Executing statements calls the accept method on the passed statement type.
 auto Interpreter::execute(JSStmt* stmt) -> void {
     if (stmt != nullptr) {
         stmt->accept(this);
     }
 }
 
-/// Execute a block.
+/// Executing block statements creates a scopped environment that points at
+/// the top level environment cleaning up the stack after execution is finished
+/// and restoring the pointer to the current environment.
 auto Interpreter::executeBlock(JSBlockStmt* block, Environment env) -> void {
     // Get the current scope.
     auto currentScopeIdx = this->currIdx;
