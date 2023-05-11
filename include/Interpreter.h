@@ -11,13 +11,14 @@
 #define DEBUG_INTERPRETER_ENV
 
 #include "AST.h"
+#include "JSRuntime.h"
 #include "JSValue.h"
-#include "Runtime.h"
 
 #include <memory>
 #include <mutex>
 
 namespace minijsc {
+
 /// Max possiblee number of scopes.
 static constexpr int kMaxNestedScopes = 65535;
 
@@ -116,6 +117,9 @@ class Interpreter : public Visitor {
     /// Visit an assignment expression.
     auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue override;
+    /// Visit a call expression.
+    auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
+        -> JSBasicValue override;
     /// Visit a block statement.
     auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
     /// Visit an expression statement.
@@ -144,7 +148,7 @@ class Interpreter : public Visitor {
 #endif
     /// Check truthiness of a value.
     static auto isTruthy(JSBasicValue value) -> bool {
-        switch (value.getType()) {
+        switch (value.getKind()) {
         case JSValueKind::Boolean: {
             return value.getValue<JSBoolean>();
         }

@@ -39,6 +39,7 @@ enum class JSValueKind {
     Number,
     Boolean,
     String,
+    Function,
 };
 
 /// JSValue defines a virtual interface for representing all JavaScript values
@@ -47,13 +48,13 @@ class JSValue {
     public:
     virtual ~JSValue() = default;
 
-    virtual auto getType() -> JSValueKind;
+    virtual auto getKind() -> JSValueKind = 0;
 };
 
 /// JSBasicValue class represents a JavaScript primitive value, primitives
 /// include numbers, booleans, strings and the undefined and null types.
 /// JSBasicValue is implemented using a variant around C++ primitive types
-class JSBasicValue {
+class JSBasicValue : public JSValue {
     public:
     // Default constructor sets the type to undefined, the variant is in monostate.
     JSBasicValue() : type(JSValueKind::Undefined) {}
@@ -76,8 +77,8 @@ class JSBasicValue {
     JSBasicValue(const char* str)
         : value(std::string(str)), type(JSValueKind::String) {}
 
-    // Return the `JSType` of this value.
-    [[nodiscard]] auto getType() -> JSValueKind { return type; }
+    // Return the `JSValueKind` of this value.
+    [[nodiscard]] auto getKind() -> JSValueKind override { return type; }
 
     // Check if the value is undefined.
     [[nodiscard]] auto isUndefined() const -> bool {
@@ -112,6 +113,8 @@ class JSBasicValue {
             return std::to_string(getValue<double>());
         case JSValueKind::String:
             return getValue<std::string>();
+        case JSValueKind::Function:
+            return "Function";
         }
     }
 

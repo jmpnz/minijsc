@@ -1,5 +1,5 @@
-#include "JSParser.h"
 #include "AST.h"
+#include "JSParser.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "fmt/core.h"
@@ -14,6 +14,9 @@
 #include <vector>
 
 namespace minijsc {
+
+/// Maximum number of arguments supported for functions.
+static constexpr int kMaxArgs = 255;
 
 auto JSParser::parse() -> std::vector<std::shared_ptr<JSStmt>> {
     std::vector<std::shared_ptr<JSStmt>> statements;
@@ -257,6 +260,33 @@ auto JSParser::parseUnaryExpr()  // NOLINT
     }
 
     return parsePrimaryExpr();
+}
+
+auto JSParser::parseCallExpr() -> std::shared_ptr<JSExpr> {
+    fmt::print("JSParser::parseCallExpr\n");
+    auto expr = parsePrimaryExpr();
+
+    while (true) {
+        if (match(JSTokenKind::LParen)) {
+            std::vector<std::shared_ptr<JSExpr>> args;
+            if (!check(JSTokenKind::RParen)) {
+                do {
+                    if (args.size() >= kMaxArgs) {
+                        throw std::runtime_error(
+                            "Can't have more than 255 arguments.\n");
+                    }
+                    args.emplace_back(parseExpr());
+                } while (match(JSTokenKind::Comma));
+            }
+            auto paren =
+                consume(JSTokenKind::RParen, "Expected ')' after arguments.\n");
+
+            expr = std::make_shared<JSCallExpr>(expr, paren, args);
+        } else {
+            break;
+        }
+    }
+    return expr;
 }
 
 auto JSParser::parseEqualityExpr() -> std::shared_ptr<JSExpr> {

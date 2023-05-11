@@ -1,5 +1,5 @@
-#ifndef RUNTIME_H
-#define RUNTIME_H
+#ifndef JSRUNTIME_H
+#define JSRUNTIME_H
 
 #include "AST.h"
 #include "JSValue.h"

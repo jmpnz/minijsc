@@ -3,11 +3,12 @@
 // The interpreter implements the visitor pattern declared in AST.h each visit
 // method implements an evaluation pattern depending on the visited node kind.
 //===----------------------------------------------------------------------===//
-#include "AST.h"
 #include "Interpreter.h"
+#include "AST.h"
+#include "JSCallable.h"
+#include "JSRuntime.h"
 #include "JSToken.h"
 #include "JSValue.h"
-#include "Runtime.h"
 #include "fmt/core.h"
 #include <cassert>
 #include <iterator>
@@ -112,6 +113,19 @@ auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     fmt::print("Visit assign expr: {}\n", value.toString());
     assign(expr->getName().getLexeme(), value);
     return value;
+}
+
+/// Call expressions
+auto Interpreter::visitCallExpr(std::shared_ptr<JSCallExpr> expr)
+    -> JSBasicValue {
+    auto callee        = evaluate(expr->getCallee().get());
+    JSValue* calleePtr = &callee;
+    std::vector<JSBasicValue> args;
+    for (auto& arg : expr->getArgs()) {
+        args.emplace_back(evaluate(arg.get()));
+    }
+    auto* func = dynamic_cast<JSCallable*>(calleePtr);
+    return func->call(this, args);
 }
 
 /// Literal expressions will simply return the literal value.

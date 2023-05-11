@@ -28,6 +28,7 @@ class JSUnaryExpr;
 class JSGroupingExpr;
 class JSVarExpr;
 class JSAssignExpr;
+class JSCallExpr;
 class JSVarDecl;
 class JSExprStmt;
 class JSIfStmt;
@@ -59,6 +60,8 @@ struct Visitor {
         -> JSBasicValue = 0;
     virtual auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue = 0;
+    virtual auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
+        -> JSBasicValue = 0;
     // virtual auto visitCallExpr(Call expr) -> R         = 0;
     // virtual auto visitGetExpr(Get expr) -> R           = 0;
     // virtual auto visitLogicalExpr(Logical expr) -> R   = 0;
@@ -89,6 +92,8 @@ enum class ASTNodeKind {
     AssignExpr,
     // Variable expressions.
     VarExpr,
+    // Call expressions.
+    CallExpr,
     // Variable declarations.
     VarDecl,
     // Block statements.
@@ -118,6 +123,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "AssignExpr";
     case ASTNodeKind::VarExpr:
         return "VarExpr";
+    case ASTNodeKind::CallExpr:
+        return "CallExpr";
     case ASTNodeKind::VarDecl:
         return "VarDecl";
     case ASTNodeKind::BlockStmt:
@@ -446,6 +453,36 @@ class JSUnaryExpr : public JSExpr {
     JSToken unaryOp;
     // Right handside of the unary expression.
     std::shared_ptr<JSExpr> right;
+};
+
+// Call expressions, are expressions that return a value from a function call.
+class JSCallExpr : public JSExpr {
+    public:
+    // Call expression constructor.
+    explicit JSCallExpr(std::shared_ptr<JSExpr> callee, JSToken paren,
+                        std::vector<std::shared_ptr<JSExpr>> arguments)
+        : callee(std::move(callee)), paren(std::move(paren)),
+          arguments(std::move(arguments)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::CallExpr; }
+
+    auto accept(Visitor* visitor) -> JSBasicValue override {
+        fmt::print("JSCallExpr::accept\n");
+        return visitor->visitCallExpr(
+            std::static_pointer_cast<JSCallExpr>(shared_from_this()));
+    }
+
+    auto getCallee() -> std::shared_ptr<JSExpr> { return callee; }
+
+    auto getArgs() -> std::vector<std::shared_ptr<JSExpr>> { return arguments; }
+
+    private:
+    // Callee expression.
+    std::shared_ptr<JSExpr> callee;
+    // Parenthesized token.
+    JSToken paren;
+    // Arguments list, which is optional.
+    std::vector<std::shared_ptr<JSExpr>> arguments;
 };
 
 // Literal expressions, are expressions that return a value literal.

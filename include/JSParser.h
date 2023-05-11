@@ -129,6 +129,9 @@ class JSParser {
     // Parse a unary expression.
     auto parseUnaryExpr() -> std::shared_ptr<JSExpr>;
 
+    // Parse a call expression.
+    auto parseCallExpr() -> std::shared_ptr<JSExpr>;
+
     // Parse a factor expression.
     auto parseFactorExpr() -> std::shared_ptr<JSExpr>;
 

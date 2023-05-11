@@ -4,10 +4,8 @@ project(minijsc LANGUAGES CXX)
 
 set(CMAKE_CPP_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 20)
-# Useful debug for the debug build
-add_compile_options(-g3)
-# lots of warnings and errors.
-add_compile_options(-Wall -Wextra -Werror -pedantic)
+# Debug symbols and lots of warnings and errors.
+add_compile_options(-g -Wall -Wextra -Werror -pedantic)
 # warn about unused things
 add_compile_options(-Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion)
 # headers and third party libraries.
