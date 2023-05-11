@@ -35,6 +35,7 @@ class JSIfStmt;
 class JSBlockStmt;
 class JSWhileStmt;
 class JSForStmt;
+class JSFuncDecl;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
 /// by an AST consumer. There are three AST consumers defined currently
@@ -57,7 +58,7 @@ struct Visitor {
     virtual auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue = 0;
     virtual auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     virtual auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue = 0;
     virtual auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
@@ -76,6 +77,7 @@ struct Visitor {
     virtual auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void = 0;
     virtual auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void     = 0;
     virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
+    virtual auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void   = 0;
 };
 
 /// AST node kinds, enumerates both expression and statement nodes.
@@ -106,6 +108,8 @@ enum class ASTNodeKind {
     WhileStmt,
     // For statement.
     ForStmt,
+    // Function declaration.
+    FuncDecl,
 };
 
 /// Returns a textual representation of the AST node kind.
@@ -137,6 +141,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "WhileStmt";
     case ASTNodeKind::ForStmt:
         return "ForStmt";
+    case ASTNodeKind::FuncDecl:
+        return "FuncDecl";
     }
 }
 
@@ -356,11 +362,14 @@ class JSVarDecl : public JSStmt {
 /// a variable.
 class JSVarExpr : public JSExpr {
     public:
+    /// Constructor for variable expressions takes the variable name as parameter
+    /// since it's the only thing we need to resolve to the variable's value at
+    /// runtime.
     explicit JSVarExpr(JSToken name) : name(std::move(name)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::VarExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSVarExpr::accept\n");
         return visitor->visitVarExpr(
             std::static_pointer_cast<JSVarExpr>(shared_from_this()));
@@ -370,6 +379,39 @@ class JSVarExpr : public JSExpr {
 
     private:
     JSToken name;
+};
+
+/// Function declarations are statements that create bindings to runtime
+/// functions.
+class JSFuncDecl : public JSStmt {
+    public:
+    /// Constructor takes the function name, parameters and statement for the body.
+    explicit JSFuncDecl(JSToken name, std::vector<JSToken> params,
+                        std::shared_ptr<JSBlockStmt> body)
+        : name(std::move(name)), params(std::move(params)),
+          body(std::move(body)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::FuncDecl; }
+
+    auto accept(Visitor* visitor) -> void override {
+        fmt::print("JSFuncDecl::accept\n");
+        return visitor->visitFuncDecl(
+            std::static_pointer_cast<JSFuncDecl>(shared_from_this()));
+    }
+
+    auto getParams() -> std::vector<JSToken> { return params; }
+
+    auto getName() -> JSToken { return name; }
+
+    auto getBody() -> std::shared_ptr<JSBlockStmt> { return body; }
+
+    private:
+    /// Function name.
+    JSToken name;
+    /// Function parameter names.
+    std::vector<JSToken> params;
+    /// Function body.
+    std::shared_ptr<JSBlockStmt> body;
 };
 
 /// Assignment expressions, are expressions which after evaluation are bound

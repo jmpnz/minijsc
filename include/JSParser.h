@@ -99,6 +99,9 @@ class JSParser {
     // Parse a variable declaration.
     auto parseVarDecl() -> std::shared_ptr<JSStmt>;
 
+    // Parse a function declaration.
+    auto parseFuncDecl() -> std::shared_ptr<JSStmt>;
+
     // Parse a block statement.
     auto parseBlockStmt() -> std::shared_ptr<JSBlockStmt>;
 

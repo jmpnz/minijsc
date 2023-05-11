@@ -1,5 +1,5 @@
-#include "AST.h"
 #include "JSParser.h"
+#include "AST.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "fmt/core.h"
@@ -27,6 +27,9 @@ auto JSParser::parse() -> std::vector<std::shared_ptr<JSStmt>> {
 }
 
 auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
+    if (match(JSTokenKind::Function)) {
+        return parseFuncDecl();
+    }
     if (match(JSTokenKind::If)) {
         return parseIfStmt();
     }
@@ -134,8 +137,37 @@ auto JSParser::parseVarDecl() -> std::shared_ptr<JSStmt> {
     return std::make_shared<JSVarDecl>(name);
 }
 
+auto JSParser::parseFuncDecl() -> std::shared_ptr<JSStmt> {
+    // Consume the token name.
+    auto name = consume(JSTokenKind::Identifier,
+                        "Expected identifier after function declaration.");
+    // Skip the opening parenthesis.
+    consume(JSTokenKind::LParen, "Expected '(' after function name.");
+    std::vector<JSToken> params;
+    // Process the function arguments.
+    if (!check(JSTokenKind::RParen)) {
+        do {
+            if (params.size() >= kMaxArgs) {
+                throw std::runtime_error("Can't have more than 255 arguments");
+            }
+            params.emplace_back(
+                consume(JSTokenKind::Identifier, "Expected parameter name"));
+        } while (match(JSTokenKind::Comma));
+    }
+    // Skip the closed parenthesis.
+    consume(JSTokenKind::RParen, "Expected ')' after argument list.");
+    // Parse the function's body.
+    consume(JSTokenKind::LBrace, "Expected '{' after function declaration.");
+    auto body = parseBlockStmt();
+    return std::make_shared<JSFuncDecl>(name, params, body);
+}
+
 auto JSParser::parseExprStmt() -> std::shared_ptr<JSStmt> {
     auto expr = parseExpr();
+    if (expr == nullptr) {
+        fmt::print("Null expression wut");
+        return std::make_shared<JSExprStmt>(expr);
+    }
     fmt::print("parseExprStmt::\n");
     fmt::print("Node Kind : {}\n", astNodeKindToString(expr->getKind()));
     fmt::print("Current Token: {}\n", tokens[current].toString());
@@ -259,7 +291,7 @@ auto JSParser::parseUnaryExpr()  // NOLINT
         return std::make_shared<JSUnaryExpr>(unaryOp, right);
     }
 
-    return parsePrimaryExpr();
+    return parseCallExpr();
 }
 
 auto JSParser::parseCallExpr() -> std::shared_ptr<JSExpr> {

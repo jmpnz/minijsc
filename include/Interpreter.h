@@ -16,6 +16,7 @@
 
 #include <memory>
 #include <mutex>
+#include <utility>
 
 namespace minijsc {
 
@@ -39,14 +40,27 @@ class Interpreter : public Visitor {
 
     ~Interpreter() override = default;
 
+    /// Return the interpeter's current scope pointer.
+    [[nodiscard]] auto getCurrIdx() const -> EnvPtr { return currIdx; }
+
+    /// Set the current scope's index to a new value.
+    auto setCurrIdx(EnvPtr idx) -> void { currIdx = idx; }
+
+    // Add a new scope to the global scopes table.
+    auto appendSymbolTable(const Environment& env) -> void {
+        symTables.emplace_back(env);
+    }
+
     /// Define a binding, definitions of new bindings always go into
     /// the current scope.
-    auto define(const std::string& name, const JSBasicValue& value) -> void {
-        symTables[currIdx].defineBinding(name, value);
+    auto define(const std::string& name, std::shared_ptr<JSValue> value)
+        -> void {
+        symTables[currIdx].defineBinding(name, std::move(value));
     }
 
     /// Assign abinding.
-    auto assign(const std::string& name, const JSBasicValue& value) -> void {
+    auto assign(const std::string& name, const std::shared_ptr<JSValue>& value)
+        -> void {
         // In order to create an assignment we need to check scopes
         // in the reverse order they were created in.
         // Starting from the current scope and iterating until we reach
@@ -54,7 +68,7 @@ class Interpreter : public Visitor {
         auto idx = currIdx;
         while (idx != -1) {
             // If the variable exists this scope, try and create an assignment.
-            if (symTables[idx].resolveBinding(name) != std::nullopt) {
+            if (symTables[idx].resolveBinding(name) != nullptr) {
                 if (symTables[idx].assign(name, value)) {
                     // If the assignment is successful return.
                     return;
@@ -69,16 +83,16 @@ class Interpreter : public Visitor {
     }
 
     // Resolve a binding
-    auto resolve(const std::string& name) -> JSBasicValue {
+    auto resolve(const std::string& name) -> std::shared_ptr<JSValue> {
         // Similar to assignment the runtime starts by checking the current scope
         // if the binding is found we return the value. Otherwise we move to the
         // parent scope.
         auto idx = currIdx;
         while (idx != -1) {
             // If the variable existis within this scope we return it.
-            auto opt = symTables[idx].resolveBinding(name);
-            if (opt.has_value()) {
-                return opt.value();
+            auto value = symTables[idx].resolveBinding(name);
+            if (value != nullptr) {
+                return value;
             }
             // If the variable wasn't found in the current scope we move its
             // parent.
@@ -113,7 +127,8 @@ class Interpreter : public Visitor {
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
         -> JSBasicValue override;
     /// Visit a variable expression.
-    auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> JSBasicValue override;
+    auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
+        -> std::shared_ptr<JSValue> override;
     /// Visit an assignment expression.
     auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
         -> JSBasicValue override;
@@ -132,17 +147,26 @@ class Interpreter : public Visitor {
     auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void override;
     /// Visit a variable declaration.
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
+    /// Visit a function declaration.
+    auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void override;
 
 #ifdef DEBUG_INTERPRETER_ENV
 
-    auto getEnv(const JSToken& name) -> JSBasicValue {
-        auto opt = symTables[currIdx].resolveBinding(name.getLexeme());
-        if (opt.has_value()) {
-            return opt.value();
+    auto getEnv(const JSToken& name) -> std::shared_ptr<JSValue> {
+        auto value = symTables[currIdx].resolveBinding(name.getLexeme());
+        if (value != nullptr) {
+            return value;
         }
 
         fmt::print("Value undefined .\n");
         return {nullptr};
+    }
+
+    auto getValue(const JSToken& name) -> JSBasicValue {
+        auto value = getEnv(name);
+
+        auto result = std::static_pointer_cast<JSBasicValue>(value);
+        return *result;
     }
 
 #endif

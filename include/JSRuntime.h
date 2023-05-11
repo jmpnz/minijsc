@@ -42,27 +42,27 @@ class Environment {
     [[nodiscard]] auto getParentPtr() const -> EnvPtr { return parent; }
 
     // Define a new binding from a variable identifier to a value.
-    auto defineBinding(const std::string& name, const JSBasicValue& value)
+    auto defineBinding(const std::string& name, std::shared_ptr<JSValue> value)
         -> void {
-        values[name] = value;
+        values[name] = std::move(value);
     }
 
     // Resolve a binding.
-    auto resolveBinding(const std::string& name)
-        -> std::optional<JSBasicValue> {
+    auto resolveBinding(const std::string& name) -> std::shared_ptr<JSValue> {
         if (values.contains(name)) {
             return values[name];
         }
-        return std::nullopt;
+        return nullptr;
     }
 
     // Assign a new value to an existing binding, returns a boolean value
     // to signal success or failure.
     // Failure of an assignment means the binding doesn't existing in JS
     // terms the variable is undefined.
-    auto assign(const std::string& name, const JSBasicValue& value) -> bool {
+    auto assign(const std::string& name, std::shared_ptr<JSValue> value)
+        -> bool {
         if (values.contains(name)) {
-            values[name] = value;
+            values[name] = std::move(value);
             return true;
         }
         return false;
@@ -71,7 +71,7 @@ class Environment {
     private:
     /// Values map stores variable declarations by their variable name mapping
     /// them to the variable values.
-    std::unordered_map<std::string, JSBasicValue> values;
+    std::unordered_map<std::string, std::shared_ptr<JSValue>> values;
     /// Parent scope's environment.
     EnvPtr parent;
 };

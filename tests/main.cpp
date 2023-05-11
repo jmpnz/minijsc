@@ -1,6 +1,7 @@
 #include "AST.h"
 #include "Interpreter.h"
 #include "JSParser.h"
+#include <memory>
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 #include "fmt/color.h"
@@ -599,8 +600,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmt        = parser.parseDecl();
         auto interpreter = Interpreter();
         interpreter.execute(stmt.get());
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
-                  .getValue<JSNumber>() == 5.);
+        auto result = std::static_pointer_cast<JSBasicValue>(
+            interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.)));
+        REQUIRE(result != nullptr);
+        CHECK((*result).getValue<JSNumber>() == 5.);
     }
     SUBCASE("test interpreting variable declarations with binary expression") {
         auto source      = "var a = 5;\nvar b = 37;\nvar c = a + b;";
@@ -610,8 +613,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         interpreter.run(stmts);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "c", 0.))
-                  .getValue<JSNumber>() == 42.);
+        auto result = std::static_pointer_cast<JSBasicValue>(
+            interpreter.getEnv(JSToken(JSTokenKind::Identifier, "c", 0.)));
+        REQUIRE(result != nullptr);
+        CHECK((*result).getValue<JSNumber>() == 42.);
     }
     SUBCASE("test interpreting variable assignment") {
         auto source      = "var a = 42;\n a = 39;";
@@ -621,8 +626,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         interpreter.run(stmts);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
-                  .getValue<JSNumber>() == 39.);
+        auto result = std::static_pointer_cast<JSBasicValue>(
+            interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.)));
+        REQUIRE(result != nullptr);
+        CHECK((*result).getValue<JSNumber>() == 39.);
     }
     SUBCASE("test interpreting block statements") {
         auto source      = "var a = 42;\n{var a = 39;\n var b = 24;}";
@@ -644,15 +651,15 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         interpreter.run(stmts);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == -55.);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "c", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "c", 0.))
                   .getValue<JSNumber>() == 42.);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "d", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "d", 0.))
                   .getValue<JSBoolean>() == false);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "f", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "f", 0.))
                   .getValue<JSBoolean>() == true);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "g", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "g", 0.))
                   .getValue<JSNumber>() == -13.);
     }
     SUBCASE("test interpreting expression (plus operator overload)") {
@@ -665,11 +672,11 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         interpreter.run(stmts);
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "f", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "f", 0.))
                   .getValue<JSString>() == "helloBob");
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "g", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "g", 0.))
                   .getValue<JSString>() == "hellofalse");
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "h", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "h", 0.))
                   .getValue<JSString>() == "hellotrue");
     }
     SUBCASE("test interpreting expression with outer and inner scope") {
@@ -680,7 +687,7 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 1.);
     }
     SUBCASE(
@@ -692,7 +699,7 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 1.);
     }
     SUBCASE("test interpreting conditional expressions") {
@@ -703,7 +710,7 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 2.);
     }
     SUBCASE("test interpreting conditional expressions with else branch") {
@@ -714,7 +721,7 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "a", 0.))
                   .getValue<JSNumber>() == 3.);
     }
     SUBCASE("test interpreting while loop") {
@@ -726,7 +733,7 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts  = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "sum", 0.))
                   .getValue<JSNumber>() == 10.);
     }
     SUBCASE("test interpreting for loop with variable declaration") {
@@ -738,7 +745,7 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts  = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "sum", 0.))
                   .getValue<JSNumber>() == 10.);
     }
     SUBCASE("test interpreting for loop with pre-variable declaration") {
@@ -751,10 +758,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "sum", 0.))
                   .getValue<JSNumber>() == 10.);
     }
-    SUBCASE("test interpreting for loop with  in-loop step") {
+    SUBCASE("test interpreting for loop with in-loop step") {
         auto source      = "var sum = 0;\nvar i = 0;\nfor (;i < 10;) { sum = "
                            "sum + 1;i = i +1; }\n";
         auto lexer       = JSLexer(source);
@@ -763,8 +770,17 @@ TEST_CASE("testing interpreter evaluate") {
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getEnv(JSToken(JSTokenKind::Identifier, "sum", 0.))
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "sum", 0.))
                   .getValue<JSNumber>() == 10.);
+    }
+    SUBCASE("test interpreting function calls") {
+        auto source      = "function add(a, b) {var d = a + b;}\n add(1,2);";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
     }
 }
 

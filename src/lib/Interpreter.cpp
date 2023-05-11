@@ -89,14 +89,20 @@ auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
     }
     fmt::print("Defining binding : {} -> {}\n", stmt->getName(),
                value.toString());
-    define(stmt->getName(), value);
+    define(stmt->getName(), std::make_shared<JSBasicValue>(value));
+}
+
+/// Function declarations create a binding to a function.
+auto Interpreter::visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void {
+    auto func = std::make_shared<JSFunction>(stmt);
+    define(stmt->getName().getLexeme(), func);
 }
 
 /// Variable expressions return the value of the variable we do that by
 /// resolving the binding in starting from the current environment, walking
 /// bottom up to the top level environment.
 auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
-    -> JSBasicValue {
+    -> std::shared_ptr<JSValue> {
     fmt::print("Resolving variable expression: {}\n",
                expr->getName().getLexeme());
     // TODO: handle nullopt
@@ -111,20 +117,24 @@ auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
     -> JSBasicValue {
     auto value = evaluate(expr->getValue().get());
     fmt::print("Visit assign expr: {}\n", value.toString());
-    assign(expr->getName().getLexeme(), value);
+    assign(expr->getName().getLexeme(), std::make_shared<JSBasicValue>(value));
     return value;
 }
 
 /// Call expressions
 auto Interpreter::visitCallExpr(std::shared_ptr<JSCallExpr> expr)
     -> JSBasicValue {
-    auto callee        = evaluate(expr->getCallee().get());
+    // Evaluate should return std::shared_ptr<JSValue>
+    auto callee = evaluate(expr->getCallee().get());
+    // Casting shouldn't be required here.
     JSValue* calleePtr = &callee;
+    assert(calleePtr != nullptr);
     std::vector<JSBasicValue> args;
     for (auto& arg : expr->getArgs()) {
         args.emplace_back(evaluate(arg.get()));
     }
-    auto* func = dynamic_cast<JSCallable*>(calleePtr);
+    auto* func = reinterpret_cast<JSCallable*>(calleePtr);
+    assert(func != nullptr);
     return func->call(this, args);
 }
 
@@ -233,6 +243,7 @@ auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
 /// Evaluating expressions calls the accept method on the passed expressions.
 auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
     if (expr != nullptr) {
+        fmt::print("Expr is not null\n");
         return expr->accept(this);
     }
     return {};
