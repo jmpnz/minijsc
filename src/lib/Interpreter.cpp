@@ -82,14 +82,15 @@ auto Interpreter::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {
 /// the `null` value. Once the assignment expression is evaluated a new
 /// binding is defined in the current environment.
 auto Interpreter::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {
-    auto value = JSBasicValue();
+    std::shared_ptr<JSBasicValue> value;
     if (stmt->getInitializer()) {
-        value = evaluate(stmt->getInitializer().get());
-        fmt::print("Has initializer : {}\n", value.toString());
+        value = static_pointer_cast<JSBasicValue>(
+            evaluate(stmt->getInitializer().get()));
+        fmt::print("Has initializer : {}\n", value->toString());
     }
     fmt::print("Defining binding : {} -> {}\n", stmt->getName(),
-               value.toString());
-    define(stmt->getName(), std::make_shared<JSBasicValue>(value));
+               value->toString());
+    define(stmt->getName(), value);
 }
 
 /// Function declarations create a binding to a function.
@@ -114,33 +115,36 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
 /// bottom up through the environment scopes. If the variable isn't found
 /// a runtime error is thrown.
 auto Interpreter::visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
-    -> JSBasicValue {
-    auto value = evaluate(expr->getValue().get());
-    fmt::print("Visit assign expr: {}\n", value.toString());
-    assign(expr->getName().getLexeme(), std::make_shared<JSBasicValue>(value));
+    -> std::shared_ptr<JSValue> {
+    auto value = std::static_pointer_cast<JSBasicValue>(
+        evaluate(expr->getValue().get()));
+    fmt::print("Visit assign expr: {}\n", value->toString());
+    assign(expr->getName().getLexeme(), value);
     return value;
 }
 
 /// Call expressions
 auto Interpreter::visitCallExpr(std::shared_ptr<JSCallExpr> expr)
-    -> JSBasicValue {
+    -> std::shared_ptr<JSValue> {
     // Evaluate should return std::shared_ptr<JSValue>
     auto callee = evaluate(expr->getCallee().get());
     // Casting shouldn't be required here.
-    JSValue* calleePtr = &callee;
-    assert(calleePtr != nullptr);
+    assert(callee != nullptr);
     std::vector<JSBasicValue> args;
     for (auto& arg : expr->getArgs()) {
-        args.emplace_back(evaluate(arg.get()));
+        auto value =
+            std::static_pointer_cast<JSBasicValue>(evaluate(arg.get()));
+        args.emplace_back(*value);
     }
-    auto* func = reinterpret_cast<JSCallable*>(calleePtr);
+    auto func = std::static_pointer_cast<JSFunction>(callee);
     assert(func != nullptr);
-    return func->call(this, args);
+    auto result = func->call(this, args);
+    return std::make_shared<JSBasicValue>(result);
 }
 
 /// Literal expressions will simply return the literal value.
 auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-    -> JSBasicValue {
+    -> std::shared_ptr<JSValue> {
     return expr->getValue();
 }
 
@@ -148,53 +152,72 @@ auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
 /// sides of the expression. The rules used for evaluation follow JavaScript's
 /// rules, we upcast depending on the values of either sides of the expression.
 auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-    -> JSBasicValue {
-    auto lhs   = evaluate(expr->getLeft().get());
-    auto rhs   = evaluate(expr->getRight().get());
+    -> std::shared_ptr<JSValue> {
+    auto lhs =
+        std::static_pointer_cast<JSBasicValue>(evaluate(expr->getLeft().get()));
+    auto rhs = std::static_pointer_cast<JSBasicValue>(
+        evaluate(expr->getRight().get()));
+
     auto binOp = expr->getOperator();
 
     switch (binOp.getKind()) {
     case JSTokenKind::Plus: {
         // Overloading for the plus operator:
         // 1. If both sides are strings concatenate them.
-        if (lhs.isString() && rhs.isString()) {
-            return {lhs.getValue<JSString>() + rhs.getValue<JSString>()};
+        if (lhs->isString() && rhs->isString()) {
+            auto res = lhs->getValue<JSString>() + rhs->getValue<JSString>();
+            return std::make_shared<JSBasicValue>(res);
         }
         // 2. If both sides are numbers sum them.
-        if (lhs.isNumber() && rhs.isNumber()) {
-            return {lhs.getValue<JSNumber>() + rhs.getValue<JSNumber>()};
+        if (lhs->isNumber() && rhs->isNumber()) {
+            auto res = lhs->getValue<JSNumber>() + rhs->getValue<JSNumber>();
+            return std::make_shared<JSBasicValue>(res);
         }
         // If one side is a string, cast the other side to a string.
-        if (lhs.isString()) {
-            return {lhs.getValue<JSString>() + rhs.toString()};
+        if (lhs->isString()) {
+            auto res = lhs->getValue<JSString>() + rhs->toString();
+            return std::make_shared<JSBasicValue>(res);
         }
-        if (rhs.isString()) {
-            return {lhs.toString() + rhs.getValue<JSString>()};
+        if (rhs->isString()) {
+            auto res = lhs->toString() + rhs->getValue<JSString>();
+            return std::make_shared<JSBasicValue>(res);
         }
         // Throw a type error if none of the above.
         throw std::runtime_error(
             "Uncaught type error '+' unsupported for types : " +
-            lhs.toString() + " and " + rhs.toString());
+            lhs->toString() + " and " + rhs->toString());
     }
-    case JSTokenKind::Minus:
-        return {lhs.getValue<JSNumber>() - rhs.getValue<JSNumber>()};
-    case JSTokenKind::Star:
-        return {lhs.getValue<JSNumber>() * rhs.getValue<JSNumber>()};
-    case JSTokenKind::Slash:
-        return {lhs.getValue<JSNumber>() / rhs.getValue<JSNumber>()};
+    case JSTokenKind::Minus: {
+        auto res = lhs->getValue<JSNumber>() - rhs->getValue<JSNumber>();
+        return std::make_shared<JSBasicValue>(res);
+    }
+    case JSTokenKind::Star: {
+        auto res = lhs->getValue<JSNumber>() * rhs->getValue<JSNumber>();
+        return std::make_shared<JSBasicValue>(res);
+    }
+    case JSTokenKind::Slash: {
+        auto res = lhs->getValue<JSNumber>() / rhs->getValue<JSNumber>();
+        return std::make_shared<JSBasicValue>(res);
+    }
     // Comparison operations.
     case JSTokenKind::Greater:
-        return JSBoolean(lhs.getValue<JSNumber>() > rhs.getValue<JSNumber>());
+        return std::make_shared<JSBasicValue>(
+            JSBoolean(lhs->getValue<JSNumber>() > rhs->getValue<JSNumber>()));
     case JSTokenKind::GreaterEqual:
-        return JSBoolean(lhs.getValue<JSNumber>() >= rhs.getValue<JSNumber>());
+        return std::make_shared<JSBasicValue>(
+            JSBoolean(lhs->getValue<JSNumber>() >= rhs->getValue<JSNumber>()));
     case JSTokenKind::Less:
-        return JSBoolean(lhs.getValue<JSNumber>() < rhs.getValue<JSNumber>());
+        return std::make_shared<JSBasicValue>(
+            JSBoolean(lhs->getValue<JSNumber>() < rhs->getValue<JSNumber>()));
     case JSTokenKind::LessEqual:
-        return JSBoolean(lhs.getValue<JSNumber>() <= rhs.getValue<JSNumber>());
+        return std::make_shared<JSBasicValue>(
+            JSBoolean(lhs->getValue<JSNumber>() <= rhs->getValue<JSNumber>()));
     case JSTokenKind::BangEqual:
-        return JSBoolean(lhs.getValue<JSNumber>() != rhs.getValue<JSNumber>());
+        return std::make_shared<JSBasicValue>(
+            JSBoolean(lhs->getValue<JSNumber>() != rhs->getValue<JSNumber>()));
     case JSTokenKind::EqualEqual:
-        return JSBoolean(lhs.getValue<JSNumber>() == rhs.getValue<JSNumber>());
+        return std::make_shared<JSBasicValue>(
+            JSBoolean(lhs->getValue<JSNumber>() == rhs->getValue<JSNumber>()));
     default:
         throw std::invalid_argument("Unknown operator");
     }
@@ -203,25 +226,27 @@ auto Interpreter::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
 /// Unary expressions are processed by evaluating the righyt hand side
 /// of the expression and executing the operator on the left hand side.
 auto Interpreter::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
-    -> JSBasicValue {
-    auto rhs     = evaluate(expr->getRight().get());
+    -> std::shared_ptr<JSValue> {
+    // Type check before cast since -[1,2,3] might be passed.
+    auto rhs = std::static_pointer_cast<JSBasicValue>(
+        evaluate(expr->getRight().get()));
     auto unaryOp = expr->getOperator();
     switch (unaryOp.getKind()) {
     case JSTokenKind::Minus:
-        return {-rhs.getValue<JSNumber>()};
+        return std::make_shared<JSBasicValue>(-rhs->getValue<JSNumber>());
     case JSTokenKind::Bang:
         fmt::print("Unary/!/");
-        return {!isTruthy(rhs)};
+        return std::make_shared<JSBasicValue>(!isTruthy(rhs));
     default:
         fmt::print("visitUnaryExpr::nullPtr");
-        return {nullptr};
+        return std::make_shared<JSBasicValue>(nullptr);
     }
 }
 
 /// Grouping expressions are processed recursively by evaluating the expression
 /// in the grouping.
 auto Interpreter::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
-    -> JSBasicValue {
+    -> std::shared_ptr<JSValue> {
     return evaluate(expr->getExpr().get());
 }
 
@@ -241,7 +266,7 @@ auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
 }
 
 /// Evaluating expressions calls the accept method on the passed expressions.
-auto Interpreter::evaluate(JSExpr* expr) -> JSBasicValue {
+auto Interpreter::evaluate(JSExpr* expr) -> std::shared_ptr<JSValue> {
     if (expr != nullptr) {
         fmt::print("Expr is not null\n");
         return expr->accept(this);

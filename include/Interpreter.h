@@ -108,7 +108,7 @@ class Interpreter : public Visitor {
     auto run(const std::vector<std::shared_ptr<JSStmt>>& stmts) -> void;
 
     /// Evaluate expression.
-    auto evaluate(JSExpr* expr) -> JSBasicValue;
+    auto evaluate(JSExpr* expr) -> std::shared_ptr<JSValue>;
     /// Execute a single statement.
     auto execute(JSStmt* stmt) -> void;
     /// Execute a block (sequence of statements)
@@ -116,25 +116,25 @@ class Interpreter : public Visitor {
 
     /// Visit a literal expression.
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-        -> JSBasicValue override;
+        -> std::shared_ptr<JSValue> override;
     /// Visit a binary expression.
     auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-        -> JSBasicValue override;
+        -> std::shared_ptr<JSValue> override;
     /// Visit a unary expression.
     auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
-        -> JSBasicValue override;
+        -> std::shared_ptr<JSValue> override;
     /// Visit a grouping expression.
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
-        -> JSBasicValue override;
+        -> std::shared_ptr<JSValue> override;
     /// Visit a variable expression.
     auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
         -> std::shared_ptr<JSValue> override;
     /// Visit an assignment expression.
     auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
-        -> JSBasicValue override;
+        -> std::shared_ptr<JSValue> override;
     /// Visit a call expression.
     auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
-        -> JSBasicValue override;
+        -> std::shared_ptr<JSValue> override;
     /// Visit a block statement.
     auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
     /// Visit an expression statement.
@@ -171,19 +171,20 @@ class Interpreter : public Visitor {
 
 #endif
     /// Check truthiness of a value.
-    static auto isTruthy(JSBasicValue value) -> bool {
-        switch (value.getKind()) {
+    static auto isTruthy(std::shared_ptr<JSValue> value) -> bool {
+        auto basicValue = std::static_pointer_cast<JSBasicValue>(value);
+        switch (basicValue->getKind()) {
         case JSValueKind::Boolean: {
-            return value.getValue<JSBoolean>();
+            return basicValue->getValue<JSBoolean>();
         }
         case JSValueKind::Number: {
-            return value.getValue<JSNumber>() != 0 &&
-                   value.getValue<JSNumber>() != 0.0;
+            return basicValue->getValue<JSNumber>() != 0 &&
+                   basicValue->getValue<JSNumber>() != 0.0;
         }
         case JSValueKind::Undefined:
             return false;
         case JSValueKind::String:
-            if (value.getValue<JSString>().empty()) {
+            if (basicValue->getValue<JSString>().empty()) {
                 return false;
             }
         case JSValueKind::Null:

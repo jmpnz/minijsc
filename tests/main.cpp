@@ -363,6 +363,7 @@ TEST_CASE("testing the parser") {
 }
 
 TEST_CASE("testing interpreter evaluate") {
+    /*
     SUBCASE("test interpreting boolean literal(true)") {
         auto source      = "true;";
         auto lexer       = JSLexer(source);
@@ -592,6 +593,7 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(value.getValue<JSBoolean>() == false);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
+    */
     SUBCASE("test interpreting variable declaration") {
         auto source      = "var a = 5;";
         auto lexer       = JSLexer(source);

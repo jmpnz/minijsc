@@ -50,19 +50,19 @@ struct Visitor {
     /// nodes it doesn't require a special destructor.
     virtual ~Visitor() = default;
     virtual auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     virtual auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     virtual auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     virtual auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     virtual auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
         -> std::shared_ptr<JSValue> = 0;
     virtual auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     virtual auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
-        -> JSBasicValue = 0;
+        -> std::shared_ptr<JSValue> = 0;
     // virtual auto visitCallExpr(Call expr) -> R         = 0;
     // virtual auto visitGetExpr(Get expr) -> R           = 0;
     // virtual auto visitLogicalExpr(Logical expr) -> R   = 0;
@@ -161,8 +161,8 @@ class JSExpr : public ASTNode, public std::enable_shared_from_this<JSExpr> {
     JSExpr()           = default;
     ~JSExpr() override = default;
 
-    virtual auto getKind() -> ASTNodeKind                 = 0;
-    virtual auto accept(Visitor* visitor) -> JSBasicValue = 0;
+    virtual auto getKind() -> ASTNodeKind                             = 0;
+    virtual auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> = 0;
 };
 
 /// Statement base interface that defines all possible JavaScript statements.
@@ -423,7 +423,7 @@ class JSAssignExpr : public JSExpr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::AssignExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSAssignExpr::accept\n");
         return visitor->visitAssignExpr(
             std::static_pointer_cast<JSAssignExpr>(shared_from_this()));
@@ -450,7 +450,7 @@ class JSBinExpr : public JSExpr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::BinaryExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSBinaryExpr::accept\n");
         return visitor->visitBinaryExpr(
             std::static_pointer_cast<JSBinExpr>(shared_from_this()));
@@ -480,7 +480,7 @@ class JSUnaryExpr : public JSExpr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::UnaryExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSUnaryExpr::accept\n");
         return visitor->visitUnaryExpr(
             std::static_pointer_cast<JSUnaryExpr>(shared_from_this()));
@@ -508,7 +508,7 @@ class JSCallExpr : public JSExpr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::CallExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSCallExpr::accept\n");
         return visitor->visitCallExpr(
             std::static_pointer_cast<JSCallExpr>(shared_from_this()));
@@ -530,22 +530,22 @@ class JSCallExpr : public JSExpr {
 // Literal expressions, are expressions that return a value literal.
 class JSLiteralExpr : public JSExpr {
     public:
-    // Constructor takes a JSBasicValue.
-    explicit JSLiteralExpr(JSBasicValue value)
-        : value(std::make_shared<JSBasicValue>(std::move(value))) {}
+    // Constructor takes a JSValue.
+    explicit JSLiteralExpr(std::shared_ptr<JSValue> value)
+        : value(std::move(value)) {}
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::LiteralExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSLiteralExpr::accept\n");
         return visitor->visitLiteralExpr(
             std::static_pointer_cast<JSLiteralExpr>(shared_from_this()));
     }
 
-    auto getValue() -> JSBasicValue { return *value; }
+    auto getValue() -> std::shared_ptr<JSValue> { return value; }
 
     private:
-    std::shared_ptr<JSBasicValue> value;
+    std::shared_ptr<JSValue> value;
 };
 
 // Grouping expressions,are expressions enclosed in parentheses overloading
@@ -557,7 +557,7 @@ class JSGroupingExpr : public JSExpr {
 
     auto getKind() -> ASTNodeKind override { return ASTNodeKind::GroupingExpr; }
 
-    auto accept(Visitor* visitor) -> JSBasicValue override {
+    auto accept(Visitor* visitor) -> std::shared_ptr<JSValue> override {
         fmt::print("JSGroupingExpr::accept\n");
         return visitor->visitGroupingExpr(
             std::static_pointer_cast<JSGroupingExpr>(shared_from_this()));

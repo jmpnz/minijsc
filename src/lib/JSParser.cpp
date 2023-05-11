@@ -1,5 +1,5 @@
-#include "JSParser.h"
 #include "AST.h"
+#include "JSParser.h"
 #include "JSToken.h"
 #include "JSValue.h"
 #include "fmt/core.h"
@@ -208,18 +208,22 @@ auto JSParser::parseAssignmentExpr() -> std::shared_ptr<JSExpr> {
 auto JSParser::parsePrimaryExpr() -> std::shared_ptr<JSExpr> {
     fmt::print("JSParser::parsePrimaryExpr\n");
     if (match(JSTokenKind::False)) {
-        return std::make_shared<JSLiteralExpr>(JSBasicValue(false));
+        return std::make_shared<JSLiteralExpr>(
+            std::make_shared<JSBasicValue>(false));
     }
     if (match(JSTokenKind::True)) {
-        return std::make_shared<JSLiteralExpr>(JSBasicValue(true));
+        return std::make_shared<JSLiteralExpr>(
+            std::make_shared<JSBasicValue>(true));
     }
     if (match(JSTokenKind::Null)) {
-        return std::make_shared<JSLiteralExpr>(JSBasicValue(nullptr));
+        return std::make_shared<JSLiteralExpr>(
+            std::make_shared<JSBasicValue>(nullptr));
     }
     if (match({JSTokenKind::Numeric, JSTokenKind::String,
                JSTokenKind::Undefined, JSTokenKind::Null})) {
         auto literal = previous().getLiteral();
-        return std::make_shared<JSLiteralExpr>(literal);
+        return std::make_shared<JSLiteralExpr>(
+            std::make_shared<JSBasicValue>(literal));
     }
     if (match(JSTokenKind::Identifier)) {
         fmt::print("JSParse::match(Identifier)");
