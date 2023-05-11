@@ -26,12 +26,39 @@ auto readJSFile(const std::string& filePath) -> std::string {
     return buffer;
 }
 
-auto main(int argc, char** argv) -> int {
-    auto source      = "var a = 42;\n{var a = 39;\n var b = 24;}";
+/// Run a given chunk of code.
+auto run(std::string source) -> void {
     auto lexer       = JSLexer(source);
     auto tokens      = lexer.scanTokens();
     auto parser      = JSParser(std::move(tokens));
-    auto stmts       = parser.parse();
+    auto code        = parser.parse();
     auto interpreter = Interpreter();
-    interpreter.run(stmts);
+    interpreter.run(code);
+}
+
+/// Run the REPL prompt.
+auto runPrompt() -> void {
+    std::string source;
+    while (true) {
+        fmt::print("> ");
+        if (std::getline(std::cin, source)) {
+            run(source);
+        } else {
+            fmt::print("\n");
+            break;
+        }
+    }
+}
+
+auto main(int argc, char** argv) -> int {
+    if (argc > 2) {
+        fmt::print("Usage : minijsc [file]\n");
+        exit(1);
+    } else if (argc == 2) {
+        auto filePath = argv[1];
+        auto source   = readJSFile(filePath);
+        run(source);
+    } else {
+        runPrompt();
+    }
 }

@@ -1,13 +1,6 @@
 # TODO
 
-[ ] Review JS grammar file, ensure all tokens are handled and treat undefined as a keyword.
-
-[x] Review value ownership and stack unwinding in environment guards
-    [ ] Implement copy and move constructors for AST nodes
-
 [ ] Make the parser more robust add error handling for parser errors
-
-[ ] Handle nullptr returns when parsing, add error handling to the parser
 
 [ ] Write an AST optimizer for constant folding
 
