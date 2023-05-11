@@ -39,6 +39,9 @@ auto JSParser::parseStmt() -> std::shared_ptr<JSStmt> {
     if (match(JSTokenKind::For)) {
         return parseForStmt();
     }
+    if (match(JSTokenKind::Return)) {
+        return parseReturnStmt();
+    }
     if (match(JSTokenKind::LBrace)) {
         return parseBlockStmt();
     }
@@ -114,6 +117,18 @@ auto JSParser::parseForStmt() -> std::shared_ptr<JSForStmt> {
     auto body = parseStmt();
 
     return std::make_shared<JSForStmt>(initializer, condition, step, body);
+}
+
+auto JSParser::parseReturnStmt() -> std::shared_ptr<JSReturnStmt> {
+    // Return keyword.
+    JSToken keyword = previous();
+    // Returned value.
+    std::shared_ptr<JSExpr> value = nullptr;
+    if (!check(JSTokenKind::Semicolon)) {
+        value = parseExpr();
+    }
+    consume(JSTokenKind::Semicolon, "Expected ';' after return.\n");
+    return std::make_shared<JSReturnStmt>(keyword, value);
 }
 
 auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {

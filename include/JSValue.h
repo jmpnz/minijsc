@@ -40,6 +40,8 @@ enum class JSValueKind {
     Boolean,
     String,
     Function,
+    Object,
+    Array,
 };
 
 /// JSValue defines a virtual interface for representing all JavaScript values
@@ -115,6 +117,10 @@ class JSBasicValue : public JSValue {
             return getValue<std::string>();
         case JSValueKind::Function:
             return "Function";
+        case JSValueKind::Object:
+            return "Object";
+        case JSValueKind::Array:
+            return "Array";
         }
     }
 

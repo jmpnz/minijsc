@@ -149,6 +149,8 @@ class Interpreter : public Visitor {
     auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
     /// Visit a function declaration.
     auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void override;
+    /// Visit a return statement.
+    auto visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt) -> void override;
 
 #ifdef DEBUG_INTERPRETER_ENV
 

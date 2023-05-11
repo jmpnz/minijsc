@@ -3,8 +3,8 @@
 // The interpreter implements the visitor pattern declared in AST.h each visit
 // method implements an evaluation pattern depending on the visited node kind.
 //===----------------------------------------------------------------------===//
-#include "Interpreter.h"
 #include "AST.h"
+#include "Interpreter.h"
 #include "JSCallable.h"
 #include "JSRuntime.h"
 #include "JSToken.h"
@@ -108,6 +108,16 @@ auto Interpreter::visitVarExpr(std::shared_ptr<JSVarExpr> expr)
                expr->getName().getLexeme());
     // TODO: handle nullopt
     return resolve(expr->getName().getLexeme());
+}
+
+/// Return statements evaluate the return value and unwind the stack back
+/// to the call expression.
+auto Interpreter::visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt) -> void {
+    std::shared_ptr<JSValue> value = nullptr;
+    if (stmt->getValue() != nullptr) {
+        value = evaluate(stmt->getValue().get());
+    }
+    throw JSReturn(value);
 }
 
 /// Assignment expressions will assign an expression's value to the variable

@@ -36,6 +36,7 @@ class JSBlockStmt;
 class JSWhileStmt;
 class JSForStmt;
 class JSFuncDecl;
+class JSReturnStmt;
 
 /// Visitor interface provides a way to have encapsulate the AST traversal
 /// by an AST consumer. There are three AST consumers defined currently
@@ -71,6 +72,8 @@ struct Visitor {
     // virtual auto visitThisExpr(This expr) -> R         = 0;
     // virtual auto visitUnaryExpr(Unary expr) -> R       = 0;
     // virtual auto visitVariableExpr(Variable expr) -> R = 0;
+    virtual auto visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt)
+        -> void                                                            = 0;
     virtual auto visitBlockStmt(std::shared_ptr<JSBlockStmt> stmt) -> void = 0;
     virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
     virtual auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void       = 0;
@@ -108,6 +111,8 @@ enum class ASTNodeKind {
     WhileStmt,
     // For statement.
     ForStmt,
+    // Return statement.
+    ReturnStmt,
     // Function declaration.
     FuncDecl,
 };
@@ -141,6 +146,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "WhileStmt";
     case ASTNodeKind::ForStmt:
         return "ForStmt";
+    case ASTNodeKind::ReturnStmt:
+        return "ReturnStmt";
     case ASTNodeKind::FuncDecl:
         return "FuncDecl";
     }
@@ -198,6 +205,31 @@ class JSExprStmt : public JSStmt {
     private:
     // Expression associated to the statement.
     std::shared_ptr<JSExpr> expr;
+};
+
+/// Return statements return a value to the caller.
+class JSReturnStmt : public JSStmt {
+    public:
+    // Return statement constructor takes the returned value name
+    // and the expression to return.
+    explicit JSReturnStmt(JSToken keyword, std::shared_ptr<JSExpr> value)
+        : keyword(std::move(keyword)), value(std::move(value)) {}
+
+    auto getKeyword() -> JSToken { return keyword; }
+
+    auto getValue() -> std::shared_ptr<JSExpr> { return value; }
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::ReturnStmt; }
+
+    auto accept(Visitor* visitor) -> void override {
+        fmt::print("JSReturnStmt::accept\n");
+        return visitor->visitReturnStmt(
+            std::static_pointer_cast<JSReturnStmt>(shared_from_this()));
+    }
+
+    private:
+    JSToken keyword;
+    std::shared_ptr<JSExpr> value;
 };
 
 /// Block statements, are blocks of statements to execute. Block statements

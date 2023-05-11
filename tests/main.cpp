@@ -784,6 +784,19 @@ TEST_CASE("testing interpreter evaluate") {
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
     }
+    SUBCASE("test interpreting function calls with return values") {
+        auto source =
+            "function add(a, b) {var sum = a + b; return sum;}\nvar d "
+            "= add(1,2);";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "d", 0.))
+                  .getValue<JSNumber>() == 3.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {

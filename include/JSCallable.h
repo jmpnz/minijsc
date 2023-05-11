@@ -10,6 +10,20 @@
 
 namespace minijsc {
 
+/// JSReturn inherits from runtime exception to unwind the stack after the return
+/// back to a function call.
+class JSReturn : public std::exception {
+    public:
+    JSReturn(std::shared_ptr<JSValue> value) : value(std::move(value)) {}
+
+    auto getValue() -> std::shared_ptr<JSValue> { return value; }
+
+    const char* what() const throw() override { return "Return"; }
+
+    private:
+    std::shared_ptr<JSValue> value;
+};
+
 /// JSCallable interface defines JavaScript callable objects such as functions
 /// and methods.
 class JSCallable {
@@ -54,9 +68,13 @@ class JSFunction : public JSCallable, public JSValue {
         interpreter->appendSymbolTable(funcScope);
         // Increment the env scope index.
         interpreter->setCurrIdx(currentScopeIdx++);
-        // Execute the statements in a new block.
-        interpreter->executeBlock(funcDecl->getBody().get(), funcScope);
-
+        try {
+            // Execute the statements in a new block.
+            interpreter->executeBlock(funcDecl->getBody().get(), funcScope);
+        } catch (JSReturn& ret) {
+            fmt::print("call => Got return value\n");
+            return *(std::static_pointer_cast<JSBasicValue>(ret.getValue()));
+        }
         return {};
     }
 

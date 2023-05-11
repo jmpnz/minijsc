@@ -114,6 +114,9 @@ class JSParser {
     // Parse a for statement.
     auto parseForStmt() -> std::shared_ptr<JSForStmt>;
 
+    // Parse a return statement.
+    auto parseReturnStmt() -> std::shared_ptr<JSReturnStmt>;
+
     // Parse an expression statement.
     auto parseExprStmt() -> std::shared_ptr<JSStmt>;
 
