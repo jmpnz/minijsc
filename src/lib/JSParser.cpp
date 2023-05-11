@@ -132,7 +132,7 @@ auto JSParser::parseReturnStmt() -> std::shared_ptr<JSReturnStmt> {
 }
 
 auto JSParser::parseDecl() -> std::shared_ptr<JSStmt> {
-    if (match(JSTokenKind::Var)) {
+    if (match(JSTokenKind::Var) || match(JSTokenKind::Let)) {
         fmt::print("JSParser::parseVarDecl\n");
         return parseVarDecl();
     }

@@ -155,6 +155,8 @@ auto Interpreter::visitCallExpr(std::shared_ptr<JSCallExpr> expr)
 /// Literal expressions will simply return the literal value.
 auto Interpreter::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
     -> std::shared_ptr<JSValue> {
+    fmt::print("Value : {}\n",
+               ((JSBasicValue*)expr->getValue().get())->toString());
     return expr->getValue();
 }
 
@@ -278,7 +280,8 @@ auto Interpreter::run(const std::vector<std::shared_ptr<JSStmt>>& stmts)
 /// Evaluating expressions calls the accept method on the passed expressions.
 auto Interpreter::evaluate(JSExpr* expr) -> std::shared_ptr<JSValue> {
     if (expr != nullptr) {
-        fmt::print("Expr is not null\n");
+        fmt::print("Expr of kind {} is not null\n",
+                   astNodeKindToString(expr->getKind()));
         return expr->accept(this);
     }
     return {};

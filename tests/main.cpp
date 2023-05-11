@@ -363,7 +363,6 @@ TEST_CASE("testing the parser") {
 }
 
 TEST_CASE("testing interpreter evaluate") {
-    /*
     SUBCASE("test interpreting boolean literal(true)") {
         auto source      = "true;";
         auto lexer       = JSLexer(source);
@@ -371,9 +370,9 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        auto value = (JSBasicValue*)interpreter.evaluate(expr.get()).get();
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
     }
     SUBCASE("test interpreting boolean literal(false)") {
@@ -383,9 +382,9 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == JSBoolean(false));
+        auto value = (JSBasicValue*)interpreter.evaluate(expr.get()).get();
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == JSBoolean(false));
         CHECK(expr.get()->getKind() == ASTNodeKind::LiteralExpr);
     }
     SUBCASE("test interpreting unary expressions (-1)") {
@@ -395,9 +394,11 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(-1));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        fmt::print("test/ {}\n", value->toString());
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(-1));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
     SUBCASE("test interpreting unary expressions (truthy/undefined)") {
@@ -407,9 +408,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
     SUBCASE("test interpreting unary expressions (truthy/null)") {
@@ -419,10 +421,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        fmt::print("test interpret undefined\n");
-        auto value = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
     SUBCASE("test interpreting binary expressions (add)") {
@@ -432,9 +434,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(4));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(4));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting grouped expressions (add/mul)") {
@@ -444,9 +447,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(20));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(20));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting grouped expressions (mul/add)") {
@@ -456,9 +460,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(16));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(16));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting unary expressions (!false)") {
@@ -468,9 +473,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == JSBoolean(true));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == JSBoolean(true));
         CHECK(expr.get()->getKind() == ASTNodeKind::UnaryExpr);
     }
     SUBCASE("test interpreting binary expressions (add)") {
@@ -480,9 +486,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(4));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(4));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting grouped expressions (add/mul)") {
@@ -492,9 +499,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(20));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(20));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting grouped expressions (mul/add)") {
@@ -504,9 +512,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(16));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(16));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting grouped expressions (add/mul) no parenthesis") {
@@ -516,9 +525,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isNumber() == true);
-        CHECK(value.getValue<JSNumber>() == JSNumber(16));
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isNumber() == true);
+        CHECK(value->getValue<JSNumber>() == JSNumber(16));
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting binary expressions (comparison/greater_equal)") {
@@ -528,9 +538,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == true);
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting binary expressions (comparison/greater)") {
@@ -540,9 +551,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == true);
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting binary expressions (comparison/lesser_equal)") {
@@ -552,9 +564,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == true);
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting binary expressions (comparison/lesser)") {
@@ -564,9 +577,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == true);
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting binary expressions (comparison/unequal") {
@@ -576,9 +590,10 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == true);
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == true);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
     SUBCASE("test interpreting binary expressions (comparison/equal_equal)") {
@@ -588,14 +603,28 @@ TEST_CASE("testing interpreter evaluate") {
         auto parser      = JSParser(std::move(tokens));
         auto expr        = parser.parseExpr();
         auto interpreter = Interpreter();
-        auto value       = interpreter.evaluate(expr.get());
-        CHECK(value.isBoolean() == true);
-        CHECK(value.getValue<JSBoolean>() == false);
+        auto value       = std::static_pointer_cast<JSBasicValue>(
+            interpreter.evaluate(expr.get()));
+        CHECK(value->isBoolean() == true);
+        CHECK(value->getValue<JSBoolean>() == false);
         CHECK(expr.get()->getKind() == ASTNodeKind::BinaryExpr);
     }
-    */
+
     SUBCASE("test interpreting variable declaration") {
         auto source      = "var a = 5;";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmt        = parser.parseDecl();
+        auto interpreter = Interpreter();
+        interpreter.execute(stmt.get());
+        auto result = std::static_pointer_cast<JSBasicValue>(
+            interpreter.getEnv(JSToken(JSTokenKind::Identifier, "a", 0.)));
+        REQUIRE(result != nullptr);
+        CHECK((*result).getValue<JSNumber>() == 5.);
+    }
+    SUBCASE("test interpreting variable declaration/let") {
+        auto source      = "let a = 5;";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
         auto parser      = JSParser(std::move(tokens));
