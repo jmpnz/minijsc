@@ -8,8 +8,8 @@
 // ConstantFoldingOptimizer: visits binary and unary expressions and executes
 // constant folding optimizations.
 //===----------------------------------------------------------------------===//
-#ifndef AST_OPTIMIZER_H
-#define AST_OPTIMIZER_H
+#ifndef ASTOPTIMIZER_H
+#define ASTOPTIMIZER_H
 #include "AST.h"
 
 namespace minijsc {

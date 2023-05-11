@@ -173,7 +173,7 @@ class Interpreter : public Visitor {
 
 #endif
     /// Check truthiness of a value.
-    static auto isTruthy(std::shared_ptr<JSValue> value) -> bool {
+    static auto isTruthy(const std::shared_ptr<JSValue>& value) -> bool {
         auto basicValue = std::static_pointer_cast<JSBasicValue>(value);
         switch (basicValue->getKind()) {
         case JSValueKind::Boolean: {

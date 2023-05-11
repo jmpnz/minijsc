@@ -1,8 +1,9 @@
 set(minijsc_lib_src
+    Bytecode.cpp
+    BytecodeCompiler.cpp
     JSLexer.cpp
     JSToken.cpp
     JSParser.cpp
-    Bytecode.cpp
     Interpreter.cpp
     VM.cpp
 )

@@ -1,4 +1,5 @@
 #include "AST.h"
+#include "BytecodeCompiler.h"
 #include "Interpreter.h"
 #include "JSParser.h"
 #include <memory>
@@ -837,6 +838,18 @@ TEST_CASE("testing interpreter evaluate") {
         REQUIRE_NOTHROW(interpreter.run(stmts));
         CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "fib", 0.))
                   .getValue<JSNumber>() == 5.);
+    }
+}
+
+TEST_CASE("testing bytecode compiler") {
+    SUBCASE("testing compilation of constant literals") {
+        auto source   = "3;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = BytecodeCompiler();
+        expr->accept(&compiler);
     }
 }
 

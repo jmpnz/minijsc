@@ -3,8 +3,8 @@
 // The interpreter implements the visitor pattern declared in AST.h each visit
 // method implements an evaluation pattern depending on the visited node kind.
 //===----------------------------------------------------------------------===//
-#include "AST.h"
 #include "Interpreter.h"
+#include "AST.h"
 #include "JSCallable.h"
 #include "JSRuntime.h"
 #include "JSToken.h"
