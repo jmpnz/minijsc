@@ -1,4 +1,5 @@
 #include "AST.h"
+#include "ASTOptimizer.h"
 #include "BytecodeCompiler.h"
 #include "Interpreter.h"
 #include "JSParser.h"
@@ -850,6 +851,20 @@ TEST_CASE("testing bytecode compiler") {
         auto expr     = parser.parseExpr();
         auto compiler = BytecodeCompiler();
         expr->accept(&compiler);
+    }
+}
+
+TEST_CASE("testing AST optimizer") {
+    SUBCASE("testing constant folding optimizer on binary expressions") {
+        auto source = "32 + 10;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        fmt::print("expr::Kind : {}\n", astNodeKindToString(expr->getKind()));
+        auto optimizer = ASTOptimizer();
+        REQUIRE(expr != nullptr);
+        expr->accept(&optimizer);
     }
 }
 

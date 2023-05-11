@@ -1,4 +1,5 @@
 set(minijsc_lib_src
+    ASTOptimizer.cpp
     Bytecode.cpp
     BytecodeCompiler.cpp
     JSLexer.cpp
