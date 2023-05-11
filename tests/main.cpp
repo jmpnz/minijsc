@@ -797,6 +797,18 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "d", 0.))
                   .getValue<JSNumber>() == 3.);
     }
+    SUBCASE("test interpreting function calls with return values/fib(5)") {
+        auto source      = "function fib(n) { if (n <= 1) { return n; } return "
+                           "fib(n - 2) + fib(n - 1);} var fib = fib(5);";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "fib", 0.))
+                  .getValue<JSNumber>() == 5.);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {
