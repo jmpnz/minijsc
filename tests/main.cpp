@@ -864,7 +864,22 @@ TEST_CASE("testing AST optimizer") {
         fmt::print("expr::Kind : {}\n", astNodeKindToString(expr->getKind()));
         auto optimizer = ASTOptimizer();
         REQUIRE(expr != nullptr);
-        expr->accept(&optimizer);
+        // expr->accept(&optimizer);
+        expr = optimizer.rewriteAST(expr);
+        fmt::print("Node kind: {}\n", astNodeKindToString(expr->getKind()));
+    }
+    SUBCASE("testing constant folding optimizer on non-optimized expression") {
+        auto source = "a + 10;";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto expr   = parser.parseExpr();
+        fmt::print("expr::Kind : {}\n", astNodeKindToString(expr->getKind()));
+        auto optimizer = ASTOptimizer();
+        REQUIRE(expr != nullptr);
+        // expr->accept(&optimizer);
+        expr = optimizer.rewriteAST(expr);
+        fmt::print("Node kind: {}\n", astNodeKindToString(expr->getKind()));
     }
 }
 

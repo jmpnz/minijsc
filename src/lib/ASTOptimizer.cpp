@@ -48,16 +48,45 @@ public:
 private:
  *
  *
+ * ASTOptimizer::rewrite(JSExpr* expr) -> std::shared_ptr<JSExpr> {
+ *  if (expr) {
+ *      expr->accept(this);
+ *      // Assume expr is a binary expression
+ *      // expr = expr->accept(this) <==> this->visitBinaryExpression(expr)
+ *      // When rewritting I need to take ownership of the passed expression
+ *      // Create a new one in place and return the new expressio When rewritting I need to take
+ *      ownership of the passed expression
+ *      // Create a new one in place and return the new expressionn
+ *      // Which does constant fold optimization
+ *      // AST::VisitBinaryExpression(BinExpr expr) {
+ *      // auto rewrittenExpr = fold(expr)
+ *      //
+ *      //
+ *      //}
+ *  }
+ * }
+ *
  * */
 
-auto ASTOptimizer::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
+auto ASTOptimizer::rewriteAST(std::shared_ptr<JSExpr> expr)
+    -> std::shared_ptr<JSExpr> {
+    auto kind = expr->getKind();
+    fmt::print("Node kind: {}\n", astNodeKindToString(kind));
+    /// Visit left and right nodes to fold them.
+    auto binExpr = std::static_pointer_cast<JSBinExpr>(expr);
+    // Visiting binary expressions will either push the folded value into
+    // the stack or unfolded.
+    visitBinaryExpr(binExpr);
+    auto folded = expressionStack.back();
+    expressionStack.pop_back();
+    return folded;
 }
 
+auto ASTOptimizer::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
+    -> void {}
+
 /// Visit a binary expression.
-auto ASTOptimizer::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-    -> std::shared_ptr<JSValue> {
+auto ASTOptimizer::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void {
 
     /// Visit left and right nodes to fold them.
     auto left  = expr->getLeft();
@@ -77,40 +106,33 @@ auto ASTOptimizer::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
                 auto litVal = leftVal->getValue<JSNumber>() +
                               rightVal->getValue<JSNumber>();
                 fmt::print("Folded value : {}\n", litVal);
+                // push folded expression into the stack.
+                expressionStack.emplace_back(std::make_shared<JSLiteralExpr>(
+                    std::make_shared<JSBasicValue>(litVal)));
             }
         }
-
-    return nullptr;
+    // If no optimization was made push the original value into the expression stack.
+    expressionStack.emplace_back(expr);
 }
 
 /// Visit a unary expression.
 auto ASTOptimizer::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+    -> void {}
 
 /// Visit a grouping expression.
 auto ASTOptimizer::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+    -> void {}
 
 /// Visit a variable expression.
-auto ASTOptimizer::visitVarExpr(std::shared_ptr<JSVarExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto ASTOptimizer::visitVarExpr(std::shared_ptr<JSVarExpr> /*expr*/) -> void {}
 
 /// Visit an assignment expression.
 auto ASTOptimizer::visitAssignExpr(std::shared_ptr<JSAssignExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+    -> void {}
 
 /// Visit a call expression.
-auto ASTOptimizer::visitCallExpr(std::shared_ptr<JSCallExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
+auto ASTOptimizer::visitCallExpr(std::shared_ptr<JSCallExpr> /*expr*/) -> void {
+
 }
 
 /// Visit a block statement.

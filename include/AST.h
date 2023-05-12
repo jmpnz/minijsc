@@ -38,6 +38,51 @@ class JSForStmt;
 class JSFuncDecl;
 class JSReturnStmt;
 
+/// ASTVisitor interface provides a way to have encapsulate the AST traversal
+/// by an AST consumer. There are three AST consumers defined currently
+/// 1. Optimizer: visits nodes in the tree executing re-writes depending
+/// on the optimization selected and node kind.
+/// 2. Interpreter: visits nodes in the tree executing statements
+/// and evaluating expressions.
+/// 3. Bytecode Compiler: visits nodes in the tree emitting bytecode on each
+/// node.
+/// Since the behavior of each class that traverses the tree will depend
+/// on the class itself, we mark all visitor functions as void.
+/// This helps us solve a problem with the initial design, interpreter
+/// class was the main driver for the Visitor interface so expression
+/// visitors returned values but since the optimizer and the compiler don't
+/// do any evaluation and either mutate the original expression or emit
+/// bytecode the value returned is practically useless.
+///
+/// Now since the visitors don't return values how will the interpreter
+/// do expression evaluation ? Well we can use a value stack, every time
+/// we visit an expression we push the value it returns into the value
+/// stack and pop it back in the evaluate function after the call to
+/// `accept`.
+class ASTVisitor {
+    public:
+    virtual ~ASTVisitor() = default;
+    virtual auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void = 0;
+    virtual auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
+        -> void                                                            = 0;
+    virtual auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr) -> void = 0;
+    virtual auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
+        -> void                                                        = 0;
+    virtual auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> void = 0;
+    virtual auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
+        -> void                                                          = 0;
+    virtual auto visitCallExpr(std::shared_ptr<JSCallExpr> expr) -> void = 0;
+    virtual auto visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt)
+        -> void                                                            = 0;
+    virtual auto visitBlockStmt(std::shared_ptr<JSBlockStmt> stmt) -> void = 0;
+    virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
+    virtual auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void       = 0;
+    virtual auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void = 0;
+    virtual auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void     = 0;
+    virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
+    virtual auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void   = 0;
+};
+
 /// Visitor interface provides a way to have encapsulate the AST traversal
 /// by an AST consumer. There are three AST consumers defined currently
 /// 1. Optimizer: visits nodes in the tree executing re-writes depending

@@ -114,6 +114,18 @@ class Interpreter : public Visitor {
     /// Execute a block (sequence of statements)
     auto executeBlock(JSBlockStmt* block, Environment env) -> void;
 
+    /// Push an evaluated value into the value stack.
+    auto pushValue(std::shared_ptr<JSValue> value) -> void {
+        valueStack.emplace_back(value);
+    }
+
+    // Pop a value from the value stack.
+    auto popValue() -> std::shared_ptr<JSValue> {
+        auto value = valueStack.back();
+        valueStack.pop_back();
+        return value;
+    }
+
     /// Visit a literal expression.
     auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
         -> std::shared_ptr<JSValue> override;
@@ -218,6 +230,8 @@ class Interpreter : public Visitor {
     ///
     /// Runtime environment is a stack of symbol tables.
     std::vector<Environment> symTables;
+    /// Value stack to keep track of evaluated expressions.
+    std::vector<std::shared_ptr<JSValue>> valueStack;
     /// Pointer to the current environment.
     EnvPtr currIdx;
 };

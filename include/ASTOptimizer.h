@@ -9,46 +9,39 @@
 //===----------------------------------------------------------------------===//
 #ifndef ASTOPTIMIZER_H
 #define ASTOPTIMIZER_H
+
 #include "AST.h"
+#include <vector>
 
 namespace minijsc {
 
 /// Constant folding optimizer implements constant folding optimizations
 /// at the AST level on binary and unary expressions.
-class ASTOptimizer : public Visitor {
+class ASTOptimizer : public ASTVisitor {
     public:
     /// Default constructor with no arguments.
     explicit ASTOptimizer() = default;
 
-    /// Default destructor.
-    ~ASTOptimizer() override = default;
-
     /// rewriteAST is the core method of all our optimizers, in this case
     /// the optimizer resolves any constant literals in unary or binary
     /// expressions and executes a folding pass.
-    auto rewriteAST(JSExpr* expr) -> void;
+    auto rewriteAST(std::shared_ptr<JSExpr> expr) -> std::shared_ptr<JSExpr>;
 
     /// Visit a literal expression.
-    auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+    auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr) -> void override;
     /// Visit a binary expression.
-    auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+    auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void override;
     /// Visit a unary expression.
-    auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+    auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr) -> void override;
     /// Visit a grouping expression.
     auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+        -> void override;
     /// Visit a variable expression.
-    auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+    auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> void override;
     /// Visit an assignment expression.
-    auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+    auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr) -> void override;
     /// Visit a call expression.
-    auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
-        -> std::shared_ptr<JSValue> override;
+    auto visitCallExpr(std::shared_ptr<JSCallExpr> expr) -> void override;
     /// Visit a block statement.
     auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
     /// Visit an expression statement.
@@ -65,6 +58,10 @@ class ASTOptimizer : public Visitor {
     auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void override;
     /// Visit a return statement.
     auto visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt) -> void override;
+
+    private:
+    /// Expression stack is used to track down optimized expressions.
+    std::vector<std::shared_ptr<JSExpr>> expressionStack;
 };
 
 } // namespace minijsc
