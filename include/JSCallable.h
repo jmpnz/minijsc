@@ -61,20 +61,27 @@ class JSFunction : public JSCallable, public JSValue {
         for (size_t i = 0; i < params.size(); i++) {
             auto paramName  = params[i].getLexeme();
             auto paramValue = arguments[i];
+            fmt::print("Argument : {} has Value : {}\n", paramName,
+                       paramValue.toString());
             funcScope.defineBinding(paramName,
                                     std::make_shared<JSBasicValue>(paramValue));
         }
         // Append the new environment to the global env stack.
         interpreter->appendSymbolTable(funcScope);
         // Increment the env scope index.
-        interpreter->setCurrIdx(currentScopeIdx++);
+        // interpreter->setCurrIdx(currentScopeIdx++);
         try {
             // Execute the statements in a new block.
             interpreter->executeBlock(funcDecl->getBody().get(), funcScope);
         } catch (JSReturn& ret) {
             fmt::print("call => Got return value\n");
+            // Pop function scope
+            //  interpreter->setCurrIdx(currentScopeIdx--);
+            interpreter->popSymbolTable();
             return *(std::static_pointer_cast<JSBasicValue>(ret.getValue()));
         }
+        interpreter->popSymbolTable();
+        // interpreter->setCurrIdx(currentScopeIdx--);
         return {};
     }
 

@@ -830,20 +830,34 @@ TEST_CASE("testing interpreter evaluate") {
     }
     SUBCASE("test interpreting function calls with return values/fib(5)") {
         auto source      = "function fib(n) { if (n <= 1) { return n; } return "
-                           "fib(n - 2) + fib(n - 1);} var fib = fib(5);";
+                           "fib(n - 2) + fib(n - 1);} var x = fib(5);";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
         auto parser      = JSParser(std::move(tokens));
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "fib", 0.))
-                  .getValue<JSNumber>() == 5.);
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "x", 0.))
+                  .getValue<JSNumber>() == 0.);
+    }
+    SUBCASE("test interpreting function calls with nested callstack") {
+        auto source =
+            "function multiply(a, b) { var res = a * b; return res;}\nfunction "
+            "square(n) { var res = multiply(n,n); return res;}\nfunction "
+            "pow2(m) { "
+            "var res = square(m);return res;}\n var x = pow2(2);";
+        auto lexer       = JSLexer(source);
+        auto tokens      = lexer.scanTokens();
+        auto parser      = JSParser(std::move(tokens));
+        auto stmts       = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "x", 0.))
+                  .getValue<JSNumber>() == 4.);
     }
 }
 
 TEST_CASE("testing bytecode compiler") {
-    /*
     SUBCASE("testing compilation of constant literals") {
         auto source   = "3;";
         auto lexer    = JSLexer(source);
@@ -853,7 +867,6 @@ TEST_CASE("testing bytecode compiler") {
         auto compiler = BytecodeCompiler();
         expr->accept(&compiler);
     }
-    */
 }
 
 TEST_CASE("testing AST optimizer") {

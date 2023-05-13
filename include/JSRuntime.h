@@ -49,6 +49,8 @@ class Environment {
 
     // Resolve a binding.
     auto resolveBinding(const std::string& name) -> std::shared_ptr<JSValue> {
+        fmt::print("Checking inner scope of : {} for variable : {}\n", parent,
+                   name);
         if (values.contains(name)) {
             return values[name];
         }

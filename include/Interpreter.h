@@ -49,6 +49,13 @@ class Interpreter : public ASTVisitor {
     // Add a new scope to the global scopes table.
     auto appendSymbolTable(const Environment& env) -> void {
         symTables.emplace_back(env);
+        currIdx += 1;
+    }
+
+    // Pop a scope from the symbol tables.
+    auto popSymbolTable() -> void {
+        symTables.pop_back();
+        currIdx -= 1;
     }
 
     /// Define a binding, definitions of new bindings always go into
@@ -94,7 +101,7 @@ class Interpreter : public ASTVisitor {
             if (value != nullptr) {
                 return value;
             }
-            // If the variable wasn't found in the current scope we move its
+            // If the variable wasn't found in the current scope we move to it
             // parent.
             idx = symTables[idx].getParentPtr();
         }

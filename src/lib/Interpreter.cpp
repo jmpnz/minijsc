@@ -349,7 +349,7 @@ auto Interpreter::executeBlock(JSBlockStmt* block, Environment env) -> void {
     // Set the parent pointer on the `env` scope to the current scope index.
     env.setParentPtr(currentScopeIdx);
     // Append the new environment to the nested envs and increment the currIdx.
-    this->symTables.emplace_back(env);
+    this->symTables.emplace_back(std::move(env));
     // Substract one since we started from a current scope ptr of 0 because
     // vectors are 0-indexed.
     currIdx += 1;
