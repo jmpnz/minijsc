@@ -211,7 +211,6 @@ class Interpreter : public ASTVisitor {
         return true;
     }
 
-    private:
     /// Runtime environment is designed following the same ideas of spaghetti
     /// stack. We have a stack of environments, the stack is always populated
     /// with at least one top level environment (the global environment).
@@ -234,6 +233,8 @@ class Interpreter : public ASTVisitor {
     std::vector<std::shared_ptr<JSValue>> valueStack;
     /// Pointer to the current environment.
     EnvPtr currIdx;
+
+    private:
 };
 
 } // namespace minijsc

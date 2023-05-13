@@ -74,7 +74,7 @@ auto Interpreter::visitBlockStmt(JSBlockStmt* block) -> void {
     fmt::print("visitBlockStmt\n");
     fmt::print("All pointers are good\n");
     auto env = Environment();
-    executeBlock(block, env);
+    executeBlock(block, std::move(env));
     fmt::print("Done processing block\n");
 }
 
@@ -149,6 +149,8 @@ auto Interpreter::visitCallExpr(JSCallExpr* expr) -> void {
     assert(func != nullptr);
     auto result = func->call(this, args);
     auto ret    = std::make_shared<JSBasicValue>(result);
+    fmt::print("Pushing return value {} from function {}\n", ret->toString(),
+               func->getName());
     pushValue(ret);
 }
 

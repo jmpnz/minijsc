@@ -46,6 +46,8 @@ class JSFunction : public JSCallable, public JSValue {
 
     auto getKind() -> JSValueKind override { return JSValueKind::Function; }
 
+    auto getName() -> std::string { return funcDecl->getName().getLexeme(); }
+
     /// Function calls are dispatched by the runtime after creating the new
     /// function scope.
     auto call(Interpreter* interpreter, std::vector<JSBasicValue> arguments)
@@ -72,13 +74,16 @@ class JSFunction : public JSCallable, public JSValue {
         // interpreter->setCurrIdx(currentScopeIdx++);
         try {
             // Execute the statements in a new block.
-            interpreter->executeBlock(funcDecl->getBody().get(), funcScope);
+            interpreter->executeBlock(funcDecl->getBody().get(),
+                                      std::move(funcScope));
         } catch (JSReturn& ret) {
-            fmt::print("call => Got return value\n");
+            auto res = (std::static_pointer_cast<JSBasicValue>(ret.getValue()));
+            fmt::print("call => Got return value {}\n", res->toString());
+            interpreter->pushValue(res);
             // Pop function scope
             //  interpreter->setCurrIdx(currentScopeIdx--);
             interpreter->popSymbolTable();
-            return *(std::static_pointer_cast<JSBasicValue>(ret.getValue()));
+            return *res;
         }
         interpreter->popSymbolTable();
         // interpreter->setCurrIdx(currentScopeIdx--);

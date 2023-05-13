@@ -828,35 +828,23 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "d", 0.))
                   .getValue<JSNumber>() == 3.);
     }
-    /*
-    SUBCASE("test interpreting function calls with return values/fib(5)") {
-        auto source      = "function fib(n) { if (n <= 1) { return n; } return "
-                           "fib(n - 2) + fib(n - 1);} var x = fib(5);";
+    SUBCASE("test interpreting recursive function calls/factorial(5)") {
+        auto source      = "function factorial(x) { if (x == 0) { return 1; } "
+                           "return x * factorial(x-1);}\n "
+                           "var res = factorial(5);";
         auto lexer       = JSLexer(source);
         auto tokens      = lexer.scanTokens();
         auto parser      = JSParser(std::move(tokens));
         auto stmts       = parser.parse();
         auto interpreter = Interpreter();
         REQUIRE_NOTHROW(interpreter.run(stmts));
-        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "x", 0.))
-                  .getValue<JSNumber>() == 5.);
-    }
-    SUBCASE("test interpreting recursive function calls/factorial(5)") {
-        auto source = "function factorial(x) { return x * factorial(x-1);}\n "
-                      "var res = factorial(5);";
-        auto lexer  = JSLexer(source);
-        auto tokens = lexer.scanTokens();
-        auto parser = JSParser(std::move(tokens));
-        auto stmts  = parser.parse();
-        auto interpreter = Interpreter();
-        REQUIRE_NOTHROW(interpreter.run(stmts));
         CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "res", 0.))
                   .getValue<JSNumber>() == 120.);
     }
-    */
     SUBCASE("test interpreting function calls with nested callstack") {
         auto source =
-            "function multiply(a, b) { var res = a * b; return res;}\nfunction "
+            "function multiply(a, b) { var res = a * b; return "
+            "res;}\nfunction "
             "square(n) { var res = multiply(n,n); return res;}\nfunction "
             "pow2(m) { "
             "var res = square(m);return res;}\n var result = pow2(2);";
