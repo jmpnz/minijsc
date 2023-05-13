@@ -28,36 +28,35 @@ class ASTOptimizer : public ASTVisitor {
     auto rewriteAST(std::shared_ptr<JSExpr> expr) -> std::shared_ptr<JSExpr>;
 
     /// Visit a literal expression.
-    auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr) -> void override;
+    auto visitLiteralExpr(JSLiteralExpr* expr) -> void override;
     /// Visit a binary expression.
-    auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void override;
+    auto visitBinaryExpr(JSBinExpr* expr) -> void override;
     /// Visit a unary expression.
-    auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr) -> void override;
+    auto visitUnaryExpr(JSUnaryExpr* expr) -> void override;
     /// Visit a grouping expression.
-    auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
-        -> void override;
+    auto visitGroupingExpr(JSGroupingExpr* expr) -> void override;
     /// Visit a variable expression.
-    auto visitVarExpr(std::shared_ptr<JSVarExpr> expr) -> void override;
+    auto visitVarExpr(JSVarExpr* expr) -> void override;
     /// Visit an assignment expression.
-    auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr) -> void override;
+    auto visitAssignExpr(JSAssignExpr* expr) -> void override;
     /// Visit a call expression.
-    auto visitCallExpr(std::shared_ptr<JSCallExpr> expr) -> void override;
+    auto visitCallExpr(JSCallExpr* expr) -> void override;
     /// Visit a block statement.
-    auto visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void override;
+    auto visitBlockStmt(JSBlockStmt* block) -> void override;
     /// Visit an expression statement.
-    auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void override;
+    auto visitExprStmt(JSExprStmt* stmt) -> void override;
     /// Visit an if statement.
-    auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void override;
+    auto visitIfStmt(JSIfStmt* stmt) -> void override;
     /// Visit a while statement.
-    auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void override;
+    auto visitWhileStmt(JSWhileStmt* stmt) -> void override;
     /// Visit a for statement.
-    auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void override;
+    auto visitForStmt(JSForStmt* stmt) -> void override;
     /// Visit a variable declaration.
-    auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void override;
+    auto visitVarDecl(JSVarDecl* stmt) -> void override;
     /// Visit a function declaration.
-    auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void override;
+    auto visitFuncDecl(JSFuncDecl* stmt) -> void override;
     /// Visit a return statement.
-    auto visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt) -> void override;
+    auto visitReturnStmt(JSReturnStmt* stmt) -> void override;
 
     private:
     /// Expression stack is used to track down optimized expressions.

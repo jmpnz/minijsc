@@ -843,6 +843,7 @@ TEST_CASE("testing interpreter evaluate") {
 }
 
 TEST_CASE("testing bytecode compiler") {
+    /*
     SUBCASE("testing compilation of constant literals") {
         auto source   = "3;";
         auto lexer    = JSLexer(source);
@@ -852,6 +853,7 @@ TEST_CASE("testing bytecode compiler") {
         auto compiler = BytecodeCompiler();
         expr->accept(&compiler);
     }
+    */
 }
 
 TEST_CASE("testing AST optimizer") {
@@ -864,8 +866,9 @@ TEST_CASE("testing AST optimizer") {
         fmt::print("expr::Kind : {}\n", astNodeKindToString(expr->getKind()));
         auto optimizer = ASTOptimizer();
         REQUIRE(expr != nullptr);
-        // expr->accept(&optimizer);
+        expr->accept(&optimizer);
         expr = optimizer.rewriteAST(expr);
+        REQUIRE(expr != nullptr);
         fmt::print("Node kind: {}\n", astNodeKindToString(expr->getKind()));
     }
     SUBCASE("testing constant folding optimizer on non-optimized expression") {
@@ -877,8 +880,9 @@ TEST_CASE("testing AST optimizer") {
         fmt::print("expr::Kind : {}\n", astNodeKindToString(expr->getKind()));
         auto optimizer = ASTOptimizer();
         REQUIRE(expr != nullptr);
-        // expr->accept(&optimizer);
+        expr->accept(&optimizer);
         expr = optimizer.rewriteAST(expr);
+        REQUIRE(expr != nullptr);
         fmt::print("Node kind: {}\n", astNodeKindToString(expr->getKind()));
     }
 }

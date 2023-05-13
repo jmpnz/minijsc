@@ -10,6 +10,8 @@
 #include "AST.h"
 #include "ASTOptimizer.h"
 
+#include <cassert>
+
 namespace minijsc {
 
 /*
@@ -73,20 +75,21 @@ auto ASTOptimizer::rewriteAST(std::shared_ptr<JSExpr> expr)
     auto kind = expr->getKind();
     fmt::print("Node kind: {}\n", astNodeKindToString(kind));
     /// Visit left and right nodes to fold them.
-    auto binExpr = std::static_pointer_cast<JSBinExpr>(expr);
+    auto binExpr = (JSBinExpr*)(expr.get());
     // Visiting binary expressions will either push the folded value into
     // the stack or unfolded.
     visitBinaryExpr(binExpr);
+    fmt::print("Visited binary expression");
     auto folded = expressionStack.back();
+    assert(folded != nullptr);
     expressionStack.pop_back();
     return folded;
 }
 
-auto ASTOptimizer::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-    -> void {}
+auto ASTOptimizer::visitLiteralExpr(JSLiteralExpr* expr) -> void {}
 
 /// Visit a binary expression.
-auto ASTOptimizer::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void {
+auto ASTOptimizer::visitBinaryExpr(JSBinExpr* expr) -> void {
 
     /// Visit left and right nodes to fold them.
     auto left  = expr->getLeft();
@@ -97,7 +100,6 @@ auto ASTOptimizer::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void {
         if (auto rightRef = dynamic_cast<JSLiteralExpr*>(right.get())) {
             // If the operation is addition, do a fold on the addition expression.
             auto op = expr->getOperator();
-            ;
             if (op.getKind() == JSTokenKind::Plus) {
                 auto leftVal =
                     std::static_pointer_cast<JSBasicValue>(leftRef->getValue());
@@ -109,55 +111,51 @@ auto ASTOptimizer::visitBinaryExpr(std::shared_ptr<JSBinExpr> expr) -> void {
                 // push folded expression into the stack.
                 expressionStack.emplace_back(std::make_shared<JSLiteralExpr>(
                     std::make_shared<JSBasicValue>(litVal)));
+                return;
             }
         }
     // If no optimization was made push the original value into the expression stack.
-    expressionStack.emplace_back(expr);
+    expressionStack.emplace_back(std::make_shared<JSBinExpr>(*expr));
+    return;
 }
 
 /// Visit a unary expression.
-auto ASTOptimizer::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> /*expr*/)
-    -> void {}
+auto ASTOptimizer::visitUnaryExpr(JSUnaryExpr* /*expr*/) -> void {}
 
 /// Visit a grouping expression.
-auto ASTOptimizer::visitGroupingExpr(std::shared_ptr<JSGroupingExpr> /*expr*/)
-    -> void {}
+auto ASTOptimizer::visitGroupingExpr(JSGroupingExpr* /*expr*/) -> void {}
 
 /// Visit a variable expression.
-auto ASTOptimizer::visitVarExpr(std::shared_ptr<JSVarExpr> /*expr*/) -> void {}
+auto ASTOptimizer::visitVarExpr(JSVarExpr* /*expr*/) -> void {}
 
 /// Visit an assignment expression.
-auto ASTOptimizer::visitAssignExpr(std::shared_ptr<JSAssignExpr> /*expr*/)
-    -> void {}
+auto ASTOptimizer::visitAssignExpr(JSAssignExpr* /*expr*/) -> void {}
 
 /// Visit a call expression.
-auto ASTOptimizer::visitCallExpr(std::shared_ptr<JSCallExpr> /*expr*/) -> void {
-
-}
+auto ASTOptimizer::visitCallExpr(JSCallExpr* /*expr*/) -> void {}
 
 /// Visit a block statement.
-auto ASTOptimizer::visitBlockStmt(std::shared_ptr<JSBlockStmt> block) -> void {}
+auto ASTOptimizer::visitBlockStmt(JSBlockStmt* block) -> void {}
 
 /// Visit an expression statement.
-auto ASTOptimizer::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {}
+auto ASTOptimizer::visitExprStmt(JSExprStmt* stmt) -> void {}
 
 /// Visit an if statement.
-auto ASTOptimizer::visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void {}
+auto ASTOptimizer::visitIfStmt(JSIfStmt* stmt) -> void {}
 
 /// Visit a while statement.
-auto ASTOptimizer::visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void {}
+auto ASTOptimizer::visitWhileStmt(JSWhileStmt* stmt) -> void {}
 
 /// Visit a for statement.
-auto ASTOptimizer::visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void {}
+auto ASTOptimizer::visitForStmt(JSForStmt* stmt) -> void {}
 
 /// Visit a variable declaration.
-auto ASTOptimizer::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {}
+auto ASTOptimizer::visitVarDecl(JSVarDecl* stmt) -> void {}
 
 /// Visit a function declaration.
-auto ASTOptimizer::visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void {}
+auto ASTOptimizer::visitFuncDecl(JSFuncDecl* stmt) -> void {}
 
 /// Visit a return statement.
-auto ASTOptimizer::visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt) -> void {
-}
+auto ASTOptimizer::visitReturnStmt(JSReturnStmt* stmt) -> void {}
 
 } // namespace minijsc
