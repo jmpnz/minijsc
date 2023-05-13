@@ -5,87 +5,62 @@
 // each visit method emits bytecode depending on the visited node kind.
 //===----------------------------------------------------------------------===//
 
-#include "BytecodeCompiler.h"
 #include "AST.h"
+#include "BytecodeCompiler.h"
 #include "JSValue.h"
 #include "fmt/core.h"
 #include <memory>
 
 namespace minijsc {
 
-auto BytecodeCompiler::visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-    -> std::shared_ptr<JSValue> {
+auto BytecodeCompiler::visitLiteralExpr(JSLiteralExpr* expr) -> void {
 
     auto value = std::static_pointer_cast<JSBasicValue>(expr->getValue());
 
     fmt::print("Emitting constant literal {}\n", value->toString());
     fmt::print("OpConstant\n");
-    return nullptr;
 }
 
 /// Visit a binary expression.
-auto BytecodeCompiler::visitBinaryExpr(std::shared_ptr<JSBinExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto BytecodeCompiler::visitBinaryExpr(JSBinExpr* /*expr*/) -> void {}
 
 /// Visit a unary expression.
-auto BytecodeCompiler::visitUnaryExpr(std::shared_ptr<JSUnaryExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto BytecodeCompiler::visitUnaryExpr(JSUnaryExpr* /*expr*/) -> void {}
 
 /// Visit a grouping expression.
-auto BytecodeCompiler::visitGroupingExpr(
-    std::shared_ptr<JSGroupingExpr> /*expr*/) -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto BytecodeCompiler::visitGroupingExpr(JSGroupingExpr* /*expr*/) -> void {}
 
 /// Visit a variable expression.
-auto BytecodeCompiler::visitVarExpr(std::shared_ptr<JSVarExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto BytecodeCompiler::visitVarExpr(JSVarExpr* /*expr*/) -> void {}
 
 /// Visit an assignment expression.
-auto BytecodeCompiler::visitAssignExpr(std::shared_ptr<JSAssignExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto BytecodeCompiler::visitAssignExpr(JSAssignExpr* /*expr*/) -> void {}
 
 /// Visit a call expression.
-auto BytecodeCompiler::visitCallExpr(std::shared_ptr<JSCallExpr> /*expr*/)
-    -> std::shared_ptr<JSValue> {
-    return nullptr;
-}
+auto BytecodeCompiler::visitCallExpr(JSCallExpr* /*expr*/) -> void {}
 
 /// Visit a block statement.
-auto BytecodeCompiler::visitBlockStmt(std::shared_ptr<JSBlockStmt> block)
-    -> void {}
+auto BytecodeCompiler::visitBlockStmt(JSBlockStmt* block) -> void {}
 
 /// Visit an expression statement.
-auto BytecodeCompiler::visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void {
-}
+auto BytecodeCompiler::visitExprStmt(JSExprStmt* stmt) -> void {}
 
 /// Visit an if statement.
-auto BytecodeCompiler::visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void {}
+auto BytecodeCompiler::visitIfStmt(JSIfStmt* stmt) -> void {}
 
 /// Visit a while statement.
-auto BytecodeCompiler::visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt)
-    -> void {}
+auto BytecodeCompiler::visitWhileStmt(JSWhileStmt* stmt) -> void {}
 
 /// Visit a for statement.
-auto BytecodeCompiler::visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void {}
+auto BytecodeCompiler::visitForStmt(JSForStmt* stmt) -> void {}
 
 /// Visit a variable declaration.
-auto BytecodeCompiler::visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void {}
+auto BytecodeCompiler::visitVarDecl(JSVarDecl* stmt) -> void {}
 
 /// Visit a function declaration.
-auto BytecodeCompiler::visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void {
-}
+auto BytecodeCompiler::visitFuncDecl(JSFuncDecl* stmt) -> void {}
 
 /// Visit a return statement.
-auto BytecodeCompiler::visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt)
-    -> void {}
+auto BytecodeCompiler::visitReturnStmt(JSReturnStmt* stmt) -> void {}
 
 } // namespace minijsc

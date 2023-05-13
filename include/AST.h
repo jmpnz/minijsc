@@ -79,51 +79,6 @@ class ASTVisitor {
     virtual auto visitFuncDecl(JSFuncDecl* stmt) -> void         = 0;
 };
 
-/// Visitor interface provides a way to have encapsulate the AST traversal
-/// by an AST consumer. There are three AST consumers defined currently
-/// 1. Optimizer: visits nodes in the tree executing re-writes depending
-/// on the optimization selected and node kind.
-/// 2. Interpreter: visits nodes in the tree executing statements
-/// and evaluating expressions.
-/// 3. Bytecode Compiler: visits nodes in the tree emitting bytecode on each
-/// node.
-struct Visitor {
-    /// Default destructor, since Visitor doesn't manage the lifecycle of AST
-    /// nodes it doesn't require a special destructor.
-    virtual ~Visitor() = default;
-    virtual auto visitBinaryExpr(std::shared_ptr<JSBinExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    virtual auto visitLiteralExpr(std::shared_ptr<JSLiteralExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    virtual auto visitUnaryExpr(std::shared_ptr<JSUnaryExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    virtual auto visitGroupingExpr(std::shared_ptr<JSGroupingExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    virtual auto visitVarExpr(std::shared_ptr<JSVarExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    virtual auto visitAssignExpr(std::shared_ptr<JSAssignExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    virtual auto visitCallExpr(std::shared_ptr<JSCallExpr> expr)
-        -> std::shared_ptr<JSValue> = 0;
-    // virtual auto visitCallExpr(Call expr) -> R         = 0;
-    // virtual auto visitGetExpr(Get expr) -> R           = 0;
-    // virtual auto visitLogicalExpr(Logical expr) -> R   = 0;
-    // virtual auto visitSetExpr(Set expr) -> R           = 0;
-    // virtual auto visitSuperExpr(Super expr) -> R       = 0;
-    // virtual auto visitThisExpr(This expr) -> R         = 0;
-    // virtual auto visitUnaryExpr(Unary expr) -> R       = 0;
-    // virtual auto visitVariableExpr(Variable expr) -> R = 0;
-    virtual auto visitReturnStmt(std::shared_ptr<JSReturnStmt> stmt)
-        -> void                                                            = 0;
-    virtual auto visitBlockStmt(std::shared_ptr<JSBlockStmt> stmt) -> void = 0;
-    virtual auto visitExprStmt(std::shared_ptr<JSExprStmt> stmt) -> void   = 0;
-    virtual auto visitIfStmt(std::shared_ptr<JSIfStmt> stmt) -> void       = 0;
-    virtual auto visitWhileStmt(std::shared_ptr<JSWhileStmt> stmt) -> void = 0;
-    virtual auto visitForStmt(std::shared_ptr<JSForStmt> stmt) -> void     = 0;
-    virtual auto visitVarDecl(std::shared_ptr<JSVarDecl> stmt) -> void     = 0;
-    virtual auto visitFuncDecl(std::shared_ptr<JSFuncDecl> stmt) -> void   = 0;
-};
-
 /// AST node kinds, enumerates both expression and statement nodes.
 enum class ASTNodeKind {
     // Literal expressions, such as value literals.
