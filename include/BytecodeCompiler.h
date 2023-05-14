@@ -47,6 +47,15 @@ class BytecodeCompiler : public ASTVisitor {
         return ((size_t)constantsPool.size() - 1);
     }
 
+    /// Compile an expression.
+    auto compile(JSExpr* expr) -> void {
+        if (expr != nullptr) {
+            fmt::print("compiling an expression of kind {}\n",
+                       astNodeKindToString(expr->getKind()));
+            expr->accept(this);
+        }
+    }
+
     /// Visit a literal expression.
     auto visitLiteralExpr(JSLiteralExpr* expr) -> void override;
     /// Visit a binary expression.

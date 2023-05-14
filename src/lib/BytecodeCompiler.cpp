@@ -14,16 +14,40 @@
 namespace minijsc {
 
 auto BytecodeCompiler::visitLiteralExpr(JSLiteralExpr* expr) -> void {
-
     auto value = std::static_pointer_cast<JSBasicValue>(expr->getValue());
     emit(OPCode::Constant, *value);
-    emit(OPCode::Return);
+    // emit(OPCode::Return);
     fmt::print("Emitting constant literal {}\n", value->toString());
     fmt::print("OpConstant\n");
 }
 
 /// Visit a binary expression.
-auto BytecodeCompiler::visitBinaryExpr(JSBinExpr* /*expr*/) -> void {}
+auto BytecodeCompiler::visitBinaryExpr(JSBinExpr* expr) -> void {
+    auto binOp = expr->getOperator();
+    compile(expr->getLeft().get());
+    compile(expr->getRight().get());
+    switch (binOp.getKind()) {
+    case JSTokenKind::Plus: {
+        emit(OPCode::Add);
+        break;
+    }
+    case JSTokenKind::Minus: {
+        emit(OPCode::Sub);
+        break;
+    }
+    case JSTokenKind::Star: {
+        emit(OPCode::Mul);
+        break;
+    }
+    case JSTokenKind::Slash: {
+        emit(OPCode::Div);
+        break;
+    }
+    default:
+        fmt::print("Unknown binary operation\n");
+        break;
+    }
+}
 
 /// Visit a unary expression.
 auto BytecodeCompiler::visitUnaryExpr(JSUnaryExpr* /*expr*/) -> void {}
