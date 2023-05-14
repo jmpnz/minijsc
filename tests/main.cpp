@@ -947,6 +947,94 @@ TEST_CASE("testing bytecode compiler") {
         vm.run();
         CHECK(vm.pop().getValue<JSNumber>() == 7.0);
     }
+    SUBCASE("testing compilation of binary expressions (add)") {
+        auto source   = "37 + 5;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->compile(expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSNumber>() == 42.0);
+    }
+    SUBCASE("testing compilation of binary expressions (sub") {
+        auto source   = "59 - 17;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->compile(expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSNumber>() == 42.0);
+    }
+    SUBCASE("testing compilation of binary expressions (div)") {
+        auto source   = "462 / 11;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->compile(expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSNumber>() == 42.0);
+    }
+    SUBCASE("testing compilation of binary expressions (mul") {
+        auto source   = "7 * 6;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->compile(expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSNumber>() == 42.0);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {
