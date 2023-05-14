@@ -14,62 +14,6 @@
 
 namespace minijsc {
 
-/*
-class ConstantFoldingOptimizer : public AstOptimizer {
-public:
-  void visit(BinaryExpression &node) override {
-    // Visit left and right children to fold constants
-    visit(node.left);
-    visit(node.right);
-
-    // Check if both children are literals
-    if (auto left_lit = dynamic_cast<LiteralExpression*>(node.left.get())) {
-      if (auto right_lit = dynamic_cast<LiteralExpression*>(node.right.get())) {
-        // Fold the binary expression
-        switch (node.op) {
-          case BinaryOperator::Plus:
-            foldAddition(left_lit, right_lit, node);
-            break;
-          case BinaryOperator::Minus:
-            foldSubtraction(left_lit, right_lit, node);
-            break;
-          case BinaryOperator::Times:
-            foldMultiplication(left_lit, right_lit, node);
-            break;
-          case BinaryOperator::Divide:
-            foldDivision(left_lit, right_lit, node);
-            break;
-          // Add more cases for other binary operators as needed
-          default:
-            break;
-        }
-      }
-    }
-  }
-
-private:
- *
- *
- * ASTOptimizer::rewrite(JSExpr* expr) -> std::shared_ptr<JSExpr> {
- *  if (expr) {
- *      expr->accept(this);
- *      // Assume expr is a binary expression
- *      // expr = expr->accept(this) <==> this->visitBinaryExpression(expr)
- *      // When rewritting I need to take ownership of the passed expression
- *      // Create a new one in place and return the new expressio When rewritting I need to take
- *      ownership of the passed expression
- *      // Create a new one in place and return the new expressionn
- *      // Which does constant fold optimization
- *      // AST::VisitBinaryExpression(BinExpr expr) {
- *      // auto rewrittenExpr = fold(expr)
- *      //
- *      //
- *      //}
- *  }
- * }
- *
- * */
-
 auto ASTOptimizer::rewriteAST(std::shared_ptr<JSExpr> expr)
     -> std::shared_ptr<JSExpr> {
     auto kind = expr->getKind();
@@ -129,7 +73,13 @@ auto ASTOptimizer::visitGroupingExpr(JSGroupingExpr* /*expr*/) -> void {}
 auto ASTOptimizer::visitVarExpr(JSVarExpr* /*expr*/) -> void {}
 
 /// Visit an assignment expression.
-auto ASTOptimizer::visitAssignExpr(JSAssignExpr* /*expr*/) -> void {}
+auto ASTOptimizer::visitAssignExpr(JSAssignExpr* /*expr*/) -> void {
+    /// When visiting assignment expressions we can call visitBinExpr
+    /// to try and fold the right hand side of the assignment.
+    /// var x = !true
+    /// We should be able to call rewriteAST recursively on
+    /// expr->getValue()
+}
 
 /// Visit a call expression.
 auto ASTOptimizer::visitCallExpr(JSCallExpr* /*expr*/) -> void {}

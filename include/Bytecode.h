@@ -22,7 +22,7 @@ namespace minijsc {
 /// loading or storing immediates are backed by a higher level object
 /// pool.
 enum class OPCode : uint8_t {
-    Return,
+    Return = 1,
     Constant,
     Negate,
     Add,

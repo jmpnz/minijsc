@@ -860,18 +860,6 @@ TEST_CASE("testing interpreter evaluate") {
     }
 }
 
-TEST_CASE("testing bytecode compiler") {
-    SUBCASE("testing compilation of constant literals") {
-        auto source   = "3;";
-        auto lexer    = JSLexer(source);
-        auto tokens   = lexer.scanTokens();
-        auto parser   = JSParser(std::move(tokens));
-        auto expr     = parser.parseExpr();
-        auto compiler = BytecodeCompiler();
-        expr->accept(&compiler);
-    }
-}
-
 TEST_CASE("testing AST optimizer") {
     SUBCASE("testing constant folding optimizer on binary expressions") {
         auto source = "32 + 10;";
@@ -900,6 +888,41 @@ TEST_CASE("testing AST optimizer") {
         expr = optimizer.rewriteAST(expr);
         REQUIRE(expr != nullptr);
         fmt::print("Node kind: {}\n", astNodeKindToString(expr->getKind()));
+    }
+}
+
+#define DEBUG_TRACE_EXECUTION
+
+TEST_CASE("testing bytecode compiler") {
+    SUBCASE("testing compilation of constant literals") {
+        auto source   = "3;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = BytecodeCompiler();
+        expr->accept(&compiler);
+    }
+    SUBCASE("testing compilation of constant literals with VM run") {
+        auto source   = "3;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        expr->accept(compiler.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSNumber>() == 3.0);
     }
 }
 

@@ -1,9 +1,10 @@
-#include "VM.h"
 #include "Bytecode.h"
+#include "VM.h"
 
 #include "JSValue.h"
 #include "fmt/core.h"
 
+#include <cassert>
 #include <string>
 
 namespace minijsc {
@@ -12,24 +13,25 @@ namespace minijsc {
 auto VM::run() -> VMResult {
     while (ip <= code.size()) {
         auto inst = fetch();
-#ifdef DEBUG_TRACE_EXECUTION
         // Since ip is incremented in fetch() we need to substract
         // 1 to grab the proper offset.
         // TODO: maybe switch disassembleInstruction to take an OPCode
-        auto prev = ip - 1;
-        disas.disassembleInstruction(prev);
-#endif
+        // auto prev = ip - 1;
+        // disas.disassembleInstruction(prev);
+        fmt::print("Executing instruction : {}\n", (uint8_t)inst);
         switch (inst) {
         case OPCode::Return: {
             return VMResult::Ok;
         }
         case OPCode::Constant: {
+            fmt::print("Executing instruction Constant\n");
             // Next opcode after OPConstant is the byte offset
             // in the constants pool.
             auto offset = fetch();
-            //   fmt::print("Next OPCode : {}\n", (int)offset);
+            fmt::print("Offset : {}\n", (int)offset);
+            assert(ctx != nullptr);
             JSBasicValue value = ctx->loadConstant((size_t)offset);
-            //  fmt::print(stdout, "JSBasicValue: {}\n", value.toString());
+            fmt::print("JSBasicValue: {}\n", value.toString());
             push(value);
             break;
         }

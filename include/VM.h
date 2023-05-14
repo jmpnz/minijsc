@@ -22,6 +22,13 @@ static constexpr size_t kMaxStackSize = 65536;
 /// Virtual machine context used during execution, context creates a value
 /// pool to store constants and immediates.
 struct VMContext {
+    /// Default constructor.
+    explicit VMContext() = default;
+
+    /// Context create takes the constant pool created during compilation
+    /// as input
+    explicit VMContext(std::vector<JSBasicValue> pool) : constantsPool(pool) {}
+
     /// Store a value in the constants pool.
     auto storeConstant(JSBasicValue value) -> void {
         constantsPool.emplace_back(std::move(value));
@@ -29,7 +36,8 @@ struct VMContext {
 
     /// Load a value from the constants pool.
     auto loadConstant(uint32_t offset) -> JSBasicValue {
-        return constantsPool.at(offset);
+        fmt::print("Loading constant @ {}\n", offset);
+        return constantsPool[offset];
     }
 
     private:
@@ -50,7 +58,12 @@ class VM {
     };
 
     public:
-    // VM constructor that we use to load bytecode for execution.
+    /// VM construct with pool and bytecode parameters.
+    explicit VM(std::vector<OPCode> bytecode, std::vector<JSBasicValue> pool)
+        : code(std::move(bytecode)), ctx(std::make_shared<VMContext>(pool)),
+          disas(Disassembler(bytecode, "vm-trace")) {}
+
+    /// VM constructor that we use to load bytecode for execution.
     explicit VM(const Bytecode& bcode) {
         code = bcode;
         ctx  = std::make_shared<VMContext>();
@@ -63,6 +76,7 @@ class VM {
     inline auto fetch() -> OPCode {
         auto nextIp = ip;
         ip++;
+        fmt::print("Fetching instruction @ {}\n", nextIp);
         return code.at(nextIp);
     }
 
@@ -73,7 +87,10 @@ class VM {
 
     /// Load a value from the constants pool.
     auto loadConstant(uint32_t offset) -> JSBasicValue {
-        return ctx->loadConstant(offset);
+        fmt::print("Fetching constant @ {}\n", offset);
+        auto cnst = ctx->loadConstant(offset);
+        fmt::print("Fetched constant {}\n", cnst.toString());
+        return cnst;
     }
 
     // Run the execution loop.

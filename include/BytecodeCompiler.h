@@ -21,6 +21,32 @@ class BytecodeCompiler : public ASTVisitor {
     /// Default destructor.
     ~BytecodeCompiler() override = default;
 
+    /// Return the generated code.
+    auto getBytecode() -> std::vector<OPCode> { return bytecodeBuffer; }
+
+    /// Return the constants pool.
+    auto getConstantsPool() -> std::vector<JSBasicValue> {
+        return constantsPool;
+    }
+
+    /// Emit an instruction and write it to the bytecode buffer.
+    auto emit(OPCode instruction) -> void {
+        bytecodeBuffer.emplace_back(instruction);
+    }
+
+    /// Emit an instruction with an immediate value to the bytecode buffer.
+    auto emit(OPCode instruction, const JSBasicValue& value) -> void {
+        auto offset = addValue(value);
+        bytecodeBuffer.emplace_back(instruction);
+        bytecodeBuffer.emplace_back((OPCode)offset);
+    }
+
+    /// Append a constant to the constant pool returning its index.
+    auto addValue(JSBasicValue value) -> size_t {
+        constantsPool.emplace_back(value);
+        return ((size_t)constantsPool.size() - 1);
+    }
+
     /// Visit a literal expression.
     auto visitLiteralExpr(JSLiteralExpr* expr) -> void override;
     /// Visit a binary expression.
@@ -53,7 +79,8 @@ class BytecodeCompiler : public ASTVisitor {
     auto visitReturnStmt(JSReturnStmt* stmt) -> void override;
 
     private:
-    std::vector<uint8_t> byteCodeBuffer;
+    std::vector<OPCode> bytecodeBuffer;
+    std::vector<JSBasicValue> constantsPool;
 };
 
 } // namespace minijsc

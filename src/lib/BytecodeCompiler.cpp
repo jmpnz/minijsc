@@ -16,7 +16,8 @@ namespace minijsc {
 auto BytecodeCompiler::visitLiteralExpr(JSLiteralExpr* expr) -> void {
 
     auto value = std::static_pointer_cast<JSBasicValue>(expr->getValue());
-
+    emit(OPCode::Constant, *value);
+    emit(OPCode::Return);
     fmt::print("Emitting constant literal {}\n", value->toString());
     fmt::print("OpConstant\n");
 }
@@ -61,6 +62,8 @@ auto BytecodeCompiler::visitVarDecl(JSVarDecl* stmt) -> void {}
 auto BytecodeCompiler::visitFuncDecl(JSFuncDecl* stmt) -> void {}
 
 /// Visit a return statement.
-auto BytecodeCompiler::visitReturnStmt(JSReturnStmt* stmt) -> void {}
+auto BytecodeCompiler::visitReturnStmt(JSReturnStmt* stmt) -> void {
+    emit(OPCode::Return);
+}
 
 } // namespace minijsc
