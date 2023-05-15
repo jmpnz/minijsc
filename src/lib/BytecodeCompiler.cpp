@@ -50,7 +50,24 @@ auto BytecodeCompiler::visitBinaryExpr(JSBinExpr* expr) -> void {
 }
 
 /// Visit a unary expression.
-auto BytecodeCompiler::visitUnaryExpr(JSUnaryExpr* /*expr*/) -> void {}
+auto BytecodeCompiler::visitUnaryExpr(JSUnaryExpr* expr) -> void {
+    auto unaryOp = expr->getOperator();
+    compile(expr->getRight().get());
+    switch (unaryOp.getKind()) {
+    case JSTokenKind::Minus:
+        emit(OPCode::Negate);
+        break;
+    case JSTokenKind::Bang:
+        emit(OPCode::Not);
+        break;
+    default:
+        fmt::print("Unknown binary operation\n");
+        break;
+    }
+}
+
+/// Visit a logical expression.
+auto BytecodeCompiler::visitLogicalExpr(JSLogicalExpr* expr) -> void {}
 
 /// Visit a grouping expression.
 auto BytecodeCompiler::visitGroupingExpr(JSGroupingExpr* /*expr*/) -> void {}

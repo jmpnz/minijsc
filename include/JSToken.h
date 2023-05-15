@@ -39,6 +39,8 @@ enum class JSTokenKind {
     EqualEqual,
     LessEqual,
     GreaterEqual,
+    And,
+    Or,
 
     // Multicharacter tokens (identifiers, strings, literals).
     Identifier,

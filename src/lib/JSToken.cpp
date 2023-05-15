@@ -48,6 +48,10 @@ auto JSToken::toString() const -> std::string {
         return ">=";
     case JSTokenKind::Greater:
         return ">";
+    case JSTokenKind::Or:
+        return "||";
+    case JSTokenKind::And:
+        return "&&";
     case JSTokenKind::Let:
         return "LET";
     case JSTokenKind::Var:

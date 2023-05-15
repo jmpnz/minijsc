@@ -135,6 +135,12 @@ class JSParser {
     // Parse a unary expression.
     auto parseUnaryExpr() -> std::shared_ptr<JSExpr>;
 
+    // Parse an Or logical expression.
+    auto parseOrExpr() -> std::shared_ptr<JSExpr>;
+
+    // Parse an And logical expression.
+    auto parseAndExpr() -> std::shared_ptr<JSExpr>;
+
     // Parse a call expression.
     auto parseCallExpr() -> std::shared_ptr<JSExpr>;
 

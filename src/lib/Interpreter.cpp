@@ -269,7 +269,7 @@ auto Interpreter::visitBinaryExpr(JSBinExpr* expr) -> void {
     }
 }
 
-/// Unary expressions are processed by evaluating the righyt hand side
+/// Unary expressions are processed by evaluating the right hand side
 /// of the expression and executing the operator on the left hand side.
 auto Interpreter::visitUnaryExpr(JSUnaryExpr* expr) -> void {
     // Type check before cast since -[1,2,3] might be passed.
@@ -296,6 +296,10 @@ auto Interpreter::visitUnaryExpr(JSUnaryExpr* expr) -> void {
     }
     }
 }
+
+/// Logical expressions are processed by evaluating the left hand side
+/// short circuiting execution for Or condtionals.
+auto Interpreter::visitLogicalExpr(JSLogicalExpr* expr) -> void {}
 
 /// Grouping expressions are processed recursively by evaluating the expression
 /// in the grouping.

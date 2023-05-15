@@ -121,6 +121,20 @@ auto JSLexer::scanToken() -> void {
         addToken(JSTokenKind::Less);
         break;
     }
+    case '&': {
+        if (match('&')) {
+            addToken(JSTokenKind::And);
+            break;
+        }
+        break;
+    }
+    case '|': {
+        if (match('|')) {
+            addToken(JSTokenKind::Or);
+            break;
+        }
+        break;
+    }
     case '>': {
         if (match('=')) {
             addToken(JSTokenKind::GreaterEqual);

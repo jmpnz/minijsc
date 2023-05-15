@@ -29,6 +29,9 @@ enum class OPCode : uint8_t {
     Sub,
     Mul,
     Div,
+    Not,
+    And,
+    Or,
 };
 
 /// Bytecode is a sequence of opcodes.

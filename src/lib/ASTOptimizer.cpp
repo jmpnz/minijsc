@@ -66,6 +66,9 @@ auto ASTOptimizer::visitBinaryExpr(JSBinExpr* expr) -> void {
 /// Visit a unary expression.
 auto ASTOptimizer::visitUnaryExpr(JSUnaryExpr* /*expr*/) -> void {}
 
+/// Visit a logical expression.
+auto ASTOptimizer::visitLogicalExpr(JSLogicalExpr* /*expr*/) -> void {}
+
 /// Visit a grouping expression.
 auto ASTOptimizer::visitGroupingExpr(JSGroupingExpr* /*expr*/) -> void {}
 

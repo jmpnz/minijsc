@@ -139,6 +139,8 @@ class Interpreter : public ASTVisitor {
     auto visitBinaryExpr(JSBinExpr* expr) -> void override;
     /// Visit a unary expression.
     auto visitUnaryExpr(JSUnaryExpr* expr) -> void override;
+    /// Visit a logical expression.
+    auto visitLogicalExpr(JSLogicalExpr* expr) -> void override;
     /// Visit a grouping expression.
     auto visitGroupingExpr(JSGroupingExpr* expr) -> void override;
     /// Visit a variable expression.

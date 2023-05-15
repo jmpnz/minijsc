@@ -25,6 +25,7 @@ class JSStmt;
 class JSBinExpr;
 class JSLiteralExpr;
 class JSUnaryExpr;
+class JSLogicalExpr;
 class JSGroupingExpr;
 class JSVarExpr;
 class JSAssignExpr;
@@ -65,6 +66,7 @@ class ASTVisitor {
     virtual auto visitBinaryExpr(JSBinExpr* expr) -> void        = 0;
     virtual auto visitLiteralExpr(JSLiteralExpr* expr) -> void   = 0;
     virtual auto visitUnaryExpr(JSUnaryExpr* expr) -> void       = 0;
+    virtual auto visitLogicalExpr(JSLogicalExpr* expr) -> void   = 0;
     virtual auto visitGroupingExpr(JSGroupingExpr* expr) -> void = 0;
     virtual auto visitVarExpr(JSVarExpr* expr) -> void           = 0;
     virtual auto visitAssignExpr(JSAssignExpr* expr) -> void     = 0;
@@ -87,6 +89,8 @@ enum class ASTNodeKind {
     BinaryExpr,
     // Unary expressions.
     UnaryExpr,
+    // Logical expressions.
+    LogicalExpr,
     // Grouping expressions, which use parenthesis to overload precedence.
     GroupingExpr,
     // Assignment expressions.
@@ -122,6 +126,8 @@ inline auto astNodeKindToString(ASTNodeKind kind) -> std::string {
         return "BinaryExpr";
     case ASTNodeKind::UnaryExpr:
         return "UnaryExpr";
+    case ASTNodeKind::LogicalExpr:
+        return "LogicalExpr";
     case ASTNodeKind::GroupingExpr:
         return "GroupingExpr";
     case ASTNodeKind::AssignExpr:
@@ -511,6 +517,37 @@ class JSUnaryExpr : public JSExpr {
     JSToken unaryOp;
     // Right handside of the unary expression.
     std::shared_ptr<JSExpr> right;
+};
+
+//  expressions, are expressions that encapsulate unary operations.
+class JSLogicalExpr : public JSExpr {
+    public:
+    // Logical expression constructor.
+    explicit JSLogicalExpr(JSToken logicalOp, std::shared_ptr<JSExpr> left,
+                           std::shared_ptr<JSExpr> right)
+        : logicalOp(std::move(logicalOp)), right(std::move(right)),
+          left(std::move(left)) {}
+
+    auto getKind() -> ASTNodeKind override { return ASTNodeKind::LogicalExpr; }
+
+    auto accept(ASTVisitor* visitor) -> void override {
+        fmt::print("JSLogicalExpr::accept\n");
+        return visitor->visitLogicalExpr(static_cast<JSLogicalExpr*>(this));
+    }
+
+    auto getOperator() -> JSToken { return logicalOp; }
+
+    auto getLeft() -> std::shared_ptr<JSExpr> { return left; }
+
+    auto getRight() -> std::shared_ptr<JSExpr> { return right; }
+
+    private:
+    // Logical operator.
+    JSToken logicalOp;
+    // Right handside of the unary expression.
+    std::shared_ptr<JSExpr> right;
+    // Left handside of the unary expression.
+    std::shared_ptr<JSExpr> left;
 };
 
 // Call expressions, are expressions that return a value from a function call.
