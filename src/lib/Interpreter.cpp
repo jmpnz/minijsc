@@ -299,7 +299,27 @@ auto Interpreter::visitUnaryExpr(JSUnaryExpr* expr) -> void {
 
 /// Logical expressions are processed by evaluating the left hand side
 /// short circuiting execution for Or condtionals.
-auto Interpreter::visitLogicalExpr(JSLogicalExpr* expr) -> void {}
+auto Interpreter::visitLogicalExpr(JSLogicalExpr* expr) -> void {
+    auto left = evaluate(expr->getLeft().get());
+
+    if (expr->getOperator().getKind() == JSTokenKind::Or) {
+        fmt::print("visitLogical::kind => {}\n",
+                   expr->getOperator().toString());
+        if (isTruthy(left)) {
+            fmt::print("Left is true\n");
+            pushValue(left);
+            return;
+        }
+    } else {
+        if (!isTruthy(left)) {
+            pushValue(left);
+            return;
+        }
+    }
+
+    auto value = evaluate(expr->getRight().get());
+    pushValue(value);
+}
 
 /// Grouping expressions are processed recursively by evaluating the expression
 /// in the grouping.

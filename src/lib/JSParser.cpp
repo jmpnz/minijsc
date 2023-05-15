@@ -197,7 +197,7 @@ auto JSParser::parseExpr() -> std::shared_ptr<JSExpr> {
 }
 
 auto JSParser::parseAssignmentExpr() -> std::shared_ptr<JSExpr> {
-    auto expr = parseEqualityExpr();
+    auto expr = parseOrExpr();
 
     if (match(JSTokenKind::Equal)) {
         auto equals = previous();
@@ -311,6 +311,30 @@ auto JSParser::parseUnaryExpr()  // NOLINT
     }
 
     return parseCallExpr();
+}
+
+auto JSParser::parseOrExpr() -> std::shared_ptr<JSExpr> {
+    auto expr = parseAndExpr();
+
+    while (match(JSTokenKind::Or)) {
+        auto logicalOp = previous();
+        auto right     = parseAndExpr();
+        expr = std::make_shared<JSLogicalExpr>(logicalOp, expr, right);
+    }
+
+    return expr;
+}
+
+auto JSParser::parseAndExpr() -> std::shared_ptr<JSExpr> {
+    auto expr = parseEqualityExpr();
+
+    while (match(JSTokenKind::And)) {
+        auto logicalOp = previous();
+        auto right     = parseEqualityExpr();
+        expr = std::make_shared<JSLogicalExpr>(logicalOp, expr, right);
+    }
+
+    return expr;
 }
 
 auto JSParser::parseCallExpr() -> std::shared_ptr<JSExpr> {
