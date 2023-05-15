@@ -839,6 +839,18 @@ TEST_CASE("testing interpreter evaluate") {
         CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "d", 0.))
                   .getValue<JSNumber>() == 3.);
     }
+    SUBCASE("test interpreting function with conditional and logical branch") {
+        auto source = "function isEven(a) { if (a == 2 || a == 4) { return "
+                      "true;} return false;}\n var b = isEven(4);";
+        auto lexer  = JSLexer(source);
+        auto tokens = lexer.scanTokens();
+        auto parser = JSParser(std::move(tokens));
+        auto stmts  = parser.parse();
+        auto interpreter = Interpreter();
+        REQUIRE_NOTHROW(interpreter.run(stmts));
+        CHECK(interpreter.getValue(JSToken(JSTokenKind::Identifier, "b", 0.))
+                  .getValue<JSBoolean>() == true);
+    }
     SUBCASE("test interpreting recursive function calls/factorial(5)") {
         auto source      = "function factorial(x) { if (x == 0) { return 1; } "
                            "return x * factorial(x-1);}\n "
@@ -1045,6 +1057,28 @@ TEST_CASE("testing bytecode compiler") {
         fmt::print("\n-- Bytecode End --\n");
         vm.run();
         CHECK(vm.pop().getValue<JSNumber>() == 42.0);
+    }
+    SUBCASE("testing compilation of logical expressions with VM run") {
+        auto source   = "true && false;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->compile(expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSBoolean>() == false);
     }
 }
 

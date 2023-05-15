@@ -13,6 +13,19 @@
 
 namespace minijsc {
 
+/// JSGlobalState represents all heap allocated objects during runtime.
+/// Each object in JSGlobalState is a reference to a JSValue because
+/// the state is a heap of concrete JSValues instead of pointers to them
+/// it is much more efficient than a vector of pointer.
+/// Objects in the JSGlobalState are referenced by a JSObjectRef which
+/// is just an index into the global state.
+///
+/// JSObject is now a concrete class of a union of types we used variant
+/// under the hood to store the actual objects, and since other heap
+/// allocated datastructures such as arrays and maps use an STL implementation
+/// we can simply pop them from the vector and call reset on the underlying
+/// smart pointer.
+
 /// EnvPtr is an index in a heap allocated vector.
 using EnvPtr = int64_t;
 
@@ -28,8 +41,6 @@ using EnvPtr = int64_t;
 // At first the design used a pointer oriented approach but this ended up to be
 // very bug prone especially since the ownership of the runtime changes and old
 // values must be destroyed.
-///
-/// Core environment implementation.
 class Environment {
     public:
     // Default constructor.
