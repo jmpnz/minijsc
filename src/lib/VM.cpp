@@ -87,35 +87,19 @@ auto VM::run() -> VMResult {
             push(res);
             break;
         }
+        case OPCode::GreaterEqual:
         case OPCode::Greater: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue res =
-                lhs.getValue<JSNumber>() > rhs.getValue<JSNumber>();
+            JSBasicValue res = lhs.greaterOrEqual(rhs);
             push(res);
             break;
         }
+        case OPCode::LesserEqual:
         case OPCode::Lesser: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue res =
-                lhs.getValue<JSNumber>() < rhs.getValue<JSNumber>();
-            push(res);
-            break;
-        }
-        case OPCode::GreaterEqual: {
-            JSBasicValue rhs = pop();
-            JSBasicValue lhs = pop();
-            JSBasicValue res =
-                lhs.getValue<JSNumber>() >= rhs.getValue<JSNumber>();
-            push(res);
-            break;
-        }
-        case OPCode::LesserEqual: {
-            JSBasicValue rhs = pop();
-            JSBasicValue lhs = pop();
-            JSBasicValue res =
-                lhs.getValue<JSNumber>() <= rhs.getValue<JSNumber>();
+            JSBasicValue res = lhs.lesserOrEqual(rhs);
             push(res);
             break;
         }

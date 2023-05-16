@@ -107,6 +107,60 @@ class JSBasicValue : public JSValue {
         }
     }
 
+    // Check if `this` is lesser than or equal than `other`.
+    auto lesserOrEqual(JSBasicValue& other) -> bool {
+        if (this->getKind() != other.getKind()) {
+            return false;
+        }
+        switch (this->getKind()) {
+        case JSValueKind::Number: {
+            auto lhs = this->getValue<JSNumber>();
+            auto rhs = other.getValue<JSNumber>();
+            return (lhs <= rhs);
+        }
+        case JSValueKind::String: {
+            auto lhs = this->getValue<JSString>();
+            auto rhs = other.getValue<JSString>();
+            return (lhs <= rhs);
+        }
+
+        case JSValueKind::Boolean: {
+            auto lhs = this->getValue<JSBoolean>();
+            auto rhs = other.getValue<JSBoolean>();
+            return (lhs <= rhs);
+        }
+        default:
+            return false;
+        }
+    }
+
+    // Check if `this` is greater than or equal than `other`.
+    auto greaterOrEqual(JSBasicValue& other) -> bool {
+        if (this->getKind() != other.getKind()) {
+            return false;
+        }
+        switch (this->getKind()) {
+        case JSValueKind::Number: {
+            auto lhs = this->getValue<JSNumber>();
+            auto rhs = other.getValue<JSNumber>();
+            return (lhs >= rhs);
+        }
+        case JSValueKind::String: {
+            auto lhs = this->getValue<JSString>();
+            auto rhs = other.getValue<JSString>();
+            return (lhs >= rhs);
+        }
+
+        case JSValueKind::Boolean: {
+            auto lhs = this->getValue<JSBoolean>();
+            auto rhs = other.getValue<JSBoolean>();
+            return (lhs >= rhs);
+        }
+        default:
+            return false;
+        }
+    }
+
     // Return the `JSValueKind` of this value.
     [[nodiscard]] auto getKind() -> JSValueKind override { return type; }
 
