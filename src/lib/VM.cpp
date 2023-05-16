@@ -65,12 +65,59 @@ auto VM::run() -> VMResult {
             push(sum);
             break;
         }
-
         case OPCode::Div: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
             JSBasicValue sum =
                 lhs.getValue<JSNumber>() / rhs.getValue<JSNumber>();
+            push(sum);
+            break;
+        }
+        case OPCode::Equal: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            JSBasicValue sum =
+                lhs.getValue<JSNumber>() == rhs.getValue<JSNumber>();
+            push(sum);
+            break;
+        }
+        case OPCode::NotEqual: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            JSBasicValue sum =
+                lhs.getValue<JSNumber>() != rhs.getValue<JSNumber>();
+            push(sum);
+            break;
+        }
+        case OPCode::Greater: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            JSBasicValue sum =
+                lhs.getValue<JSNumber>() > rhs.getValue<JSNumber>();
+            push(sum);
+            break;
+        }
+        case OPCode::Lesser: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            JSBasicValue sum =
+                lhs.getValue<JSNumber>() < rhs.getValue<JSNumber>();
+            push(sum);
+            break;
+        }
+        case OPCode::GreaterEqual: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            JSBasicValue sum =
+                lhs.getValue<JSNumber>() >= rhs.getValue<JSNumber>();
+            push(sum);
+            break;
+        }
+        case OPCode::LesserEqual: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            JSBasicValue sum =
+                lhs.getValue<JSNumber>() <= rhs.getValue<JSNumber>();
             push(sum);
             break;
         }

@@ -43,6 +43,30 @@ auto BytecodeCompiler::visitBinaryExpr(JSBinExpr* expr) -> void {
         emit(OPCode::Div);
         break;
     }
+    case JSTokenKind::BangEqual: {
+        emit(OPCode::NotEqual);
+        break;
+    }
+    case JSTokenKind::EqualEqual: {
+        emit(OPCode::Equal);
+        break;
+    }
+    case JSTokenKind::Less: {
+        emit(OPCode::Lesser);
+        break;
+    }
+    case JSTokenKind::Greater: {
+        emit(OPCode::Greater);
+        break;
+    }
+    case JSTokenKind::GreaterEqual: {
+        emit(OPCode::GreaterEqual);
+        break;
+    }
+    case JSTokenKind::LessEqual: {
+        emit(OPCode::LesserEqual);
+        break;
+    }
     default:
         fmt::print("Unknown binary operation\n");
         break;
@@ -87,7 +111,9 @@ auto BytecodeCompiler::visitLogicalExpr(JSLogicalExpr* expr) -> void {
 }
 
 /// Visit a grouping expression.
-auto BytecodeCompiler::visitGroupingExpr(JSGroupingExpr* /*expr*/) -> void {}
+auto BytecodeCompiler::visitGroupingExpr(JSGroupingExpr* expr) -> void {
+    compile(expr->getExpr().get());
+}
 
 /// Visit a variable expression.
 auto BytecodeCompiler::visitVarExpr(JSVarExpr* /*expr*/) -> void {}

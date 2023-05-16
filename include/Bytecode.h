@@ -32,6 +32,12 @@ enum class OPCode : uint8_t {
     Not,
     And,
     Or,
+    Equal,
+    NotEqual,
+    Greater,
+    Lesser,
+    GreaterEqual,
+    LesserEqual,
 };
 
 /// Bytecode is a sequence of opcodes.
