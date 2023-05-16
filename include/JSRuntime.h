@@ -13,6 +13,24 @@
 
 namespace minijsc {
 
+/// EnvPtr is an index in a heap allocated vector.
+using EnvPtr = int64_t;
+
+/// JSValueRef is an index to a JSValue in the global state heap.
+using JSValueRef = size_t;
+
+/// Kind of a JSObject
+enum class JSObjectKind;
+
+/// JSObject is a work in progress replacement for JSValue
+struct JSObject {
+    // Pointer to the location in the global state heap.
+    JSValueRef ptr;
+    // Kind of the object, used to deduce which field in the variant
+    // to extract.
+    JSObjectKind kind;
+};
+
 /// JSGlobalState represents all heap allocated objects during runtime.
 /// Each object in JSGlobalState is a reference to a JSValue because
 /// the state is a heap of concrete JSValues instead of pointers to them
@@ -25,9 +43,14 @@ namespace minijsc {
 /// allocated datastructures such as arrays and maps use an STL implementation
 /// we can simply pop them from the vector and call reset on the underlying
 /// smart pointer.
-
-/// EnvPtr is an index in a heap allocated vector.
-using EnvPtr = int64_t;
+struct JSGlobalState {
+    // Heap allocated objects.
+    std::vector<JSObject> objects;
+    // Total heap size.
+    size_t heapSize;
+    // Occupied heap size.
+    size_t occSize;
+};
 
 // Each runtime environment is scoped to a block, blocks are enclosed within
 // curly braces and each block can have one or more inner blocks.
