@@ -80,6 +80,12 @@ class VM {
         return code.at(nextIp);
     }
 
+    // Run the execution loop.
+    auto run() -> VMResult;
+
+    // Display the stack contents.
+    auto displayStack() -> void;
+
     /// Store a value in the constants pool.
     auto storeConstant(const JSBasicValue& value) -> void {
         ctx->storeConstant(value);
@@ -93,9 +99,6 @@ class VM {
         return cnst;
     }
 
-    // Run the execution loop.
-    auto run() -> VMResult;
-
     // Push value onto the stack.
     auto push(const JSBasicValue& value) -> void { stack.push_back(value); }
 
@@ -105,9 +108,6 @@ class VM {
         stack.pop_back();
         return value;
     }
-
-    // Display the stack contents.
-    auto displayStack() -> void;
 
     private:
     // Instruction pointer, since we're not doing memory mapped I/O

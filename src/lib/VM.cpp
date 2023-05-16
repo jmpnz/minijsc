@@ -76,49 +76,47 @@ auto VM::run() -> VMResult {
         case OPCode::Equal: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue sum =
-                lhs.getValue<JSNumber>() == rhs.getValue<JSNumber>();
-            push(sum);
+            JSBasicValue res = lhs.isEqual(rhs);
+            push(res);
             break;
         }
         case OPCode::NotEqual: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue sum =
-                lhs.getValue<JSNumber>() != rhs.getValue<JSNumber>();
-            push(sum);
+            JSBasicValue res = !lhs.isEqual(rhs);
+            push(res);
             break;
         }
         case OPCode::Greater: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue res =
                 lhs.getValue<JSNumber>() > rhs.getValue<JSNumber>();
-            push(sum);
+            push(res);
             break;
         }
         case OPCode::Lesser: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue res =
                 lhs.getValue<JSNumber>() < rhs.getValue<JSNumber>();
-            push(sum);
+            push(res);
             break;
         }
         case OPCode::GreaterEqual: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue res =
                 lhs.getValue<JSNumber>() >= rhs.getValue<JSNumber>();
-            push(sum);
+            push(res);
             break;
         }
         case OPCode::LesserEqual: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();
-            JSBasicValue sum =
+            JSBasicValue res =
                 lhs.getValue<JSNumber>() <= rhs.getValue<JSNumber>();
-            push(sum);
+            push(res);
             break;
         }
         default:

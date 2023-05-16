@@ -75,9 +75,37 @@ class JSBasicValue : public JSValue {
     JSBasicValue(JSString str)
         : value(std::move(str)), type(JSValueKind::String) {}
 
-    // COnstructor for C-string values.
+    // Constructor for C-string values.
     JSBasicValue(const char* str)
         : value(std::string(str)), type(JSValueKind::String) {}
+
+    // Check if two values are equal, this is a strict equality implementation
+    // that is used to compare values in the VM and interpreter.
+    auto isEqual(JSBasicValue& other) -> bool {
+        if (this->getKind() != other.getKind()) {
+            return false;
+        }
+        switch (this->getKind()) {
+        case JSValueKind::Number: {
+            auto lhs = this->getValue<JSNumber>();
+            auto rhs = other.getValue<JSNumber>();
+            return (lhs == rhs);
+        }
+        case JSValueKind::String: {
+            auto lhs = this->getValue<JSString>();
+            auto rhs = other.getValue<JSString>();
+            return (lhs == rhs);
+        }
+
+        case JSValueKind::Boolean: {
+            auto lhs = this->getValue<JSBoolean>();
+            auto rhs = other.getValue<JSBoolean>();
+            return (lhs == rhs);
+        }
+        default:
+            return false;
+        }
+    }
 
     // Return the `JSValueKind` of this value.
     [[nodiscard]] auto getKind() -> JSValueKind override { return type; }
