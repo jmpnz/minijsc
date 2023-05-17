@@ -16,6 +16,7 @@
 #include "JSValue.h"
 
 #include "Bytecode.h"
+#include "Jit.h"
 #include "VM.h"
 
 #define DEBUG_INTERPRETER_ENV
@@ -1196,4 +1197,40 @@ TEST_CASE("testing bytecode virtual machine") {
         vm.run();
         CHECK(vm.pop().getValue<JSNumber>() == 10.0);
     }
+}
+
+// Example function that generates ARM assembly code
+void generateAssembly(std::vector<uint8_t>& assembly) {
+    // Example ARM assembly code for a simple function that adds two integers
+    uint8_t addAssembly[] = {
+        0xE0, 0x00, 0x00, 0x9A, // mov x0, x0 (no-op)
+        0xE1, 0x03, 0x00, 0xAA, // add x1, x1, x2
+        0xC0, 0x03, 0x5F, 0xD6, // ret
+    };
+    assembly.insert(assembly.end(), addAssembly,
+                    addAssembly + sizeof(addAssembly));
+}
+
+TEST_CASE("testing jitted execution") {
+    // Generate assembly code
+    std::vector<uint8_t> assembly;
+    generateAssembly(assembly);
+    // get the alignment requirements for arm cpu
+    // size_t alignment = 8;
+
+    // calculate the size of the executable memory, including alignment padding
+    // size_t size = assembly.size();
+
+    JitContext ctx;
+    size_t pageSz = 4096;
+    auto page     = ctx.alloc(pageSz);
+    ctx.writeInst(assembly, page);
+
+    typedef int (*AddFunction)(int, int);
+    AddFunction add = (AddFunction)(page);
+
+    // call the generated function
+    int result = add(1, 1);
+    CHECK(result == 3);
+    munmap(page, pageSz);
 }

@@ -40,8 +40,10 @@
 #include <sys/mman.h>
 
 #define JIT_WRITE_PROTECT(flag) pthread_jit_write_protect_np(flag);
-#define CLEAR_CACHE(page)                                                      \
-    __builtin_c___clear_cache((char*)page, (char*)page + size);
+#define CLEAR_CACHE(page, size)                                                \
+    __builtin___clear_cache((char*)page, (char*)page + size);
+
+namespace minijsc {
 
 struct TraceContext {};
 
@@ -51,7 +53,7 @@ struct JitContext {
     // Allocate page aligned executable memory.
     auto alloc(size_t size) -> void* {
         // Memory protection flags.
-        int protFlags = PROT_READ | PROT_WRITE | PROD_EXEC;
+        int protFlags = PROT_READ | PROT_WRITE | PROT_EXEC;
         // Process mapping flags.
         int mapFlags = MAP_JIT | MAP_PRIVATE | MAP_ANONYMOUS;
         // Allocate a memory page.
@@ -66,17 +68,19 @@ struct JitContext {
     }
 
     // Write encoded instructions into memory page.
-    auto writeInst(std::vector<uint32_t> code, void* page) -> void {
+    auto writeInst(std::vector<uint8_t> code, void* page) -> void {
         // Set pthread JIT write protection to false.
         JIT_WRITE_PROTECT(false);
         // Write code to executable memory.
         std::memcpy(page, code.data(), code.size());
         // Flush instruction cache within the memory page to ensure
         // deterministic code.
-        CLEAR_CACHE(code);
+        CLEAR_CACHE(code.data(), code.size());
         // Enable pthread JIT write protection
         JIT_WRITE_PROTECT(true);
     }
 };
+
+} // namespace minijsc
 
 #endif
