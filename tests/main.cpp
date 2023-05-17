@@ -1203,8 +1203,7 @@ TEST_CASE("testing bytecode virtual machine") {
 void generateAssembly(std::vector<uint8_t>& assembly) {
     // Example ARM assembly code for a simple function that adds two integers
     uint8_t addAssembly[] = {
-        0xE0, 0x00, 0x00, 0x9A, // mov x0, x0 (no-op)
-        0xE1, 0x03, 0x00, 0xAA, // add x1, x1, x2
+        0x00, 0x00, 0x00, 0x0B, // add w0, w1, w2
         0xC0, 0x03, 0x5F, 0xD6, // ret
     };
     assembly.insert(assembly.end(), addAssembly,
@@ -1222,7 +1221,7 @@ TEST_CASE("testing jitted execution") {
     // size_t size = assembly.size();
 
     JitContext ctx;
-    size_t pageSz = 4096;
+    size_t pageSz = assembly.size();
     auto page     = ctx.alloc(pageSz);
     ctx.writeInst(assembly, page);
 
@@ -1231,6 +1230,7 @@ TEST_CASE("testing jitted execution") {
 
     // call the generated function
     int result = add(1, 1);
-    CHECK(result == 3);
+    fmt::print("Result : {}\n", result);
+    CHECK(result == 2);
     munmap(page, pageSz);
 }
