@@ -41,6 +41,25 @@ auto VM::run() -> VMResult {
             push(JSBasicValue(-value.getValue<JSNumber>()));
             break;
         }
+        case OPCode::Not: {
+            JSBasicValue value = pop();
+            push(JSBasicValue(JSBasicValue(!isTruthy(value))));
+            break;
+        }
+        case OPCode::And: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            bool isTrue      = isTruthy(lhs) && isTruthy(rhs);
+            push(JSBasicValue(isTrue));
+            break;
+        }
+        case OPCode::Or: {
+            JSBasicValue rhs = pop();
+            JSBasicValue lhs = pop();
+            bool isTrue      = isTruthy(lhs) || isTruthy(rhs);
+            push(JSBasicValue(isTrue));
+            break;
+        }
         case OPCode::Add: {
             JSBasicValue rhs = pop();
             JSBasicValue lhs = pop();

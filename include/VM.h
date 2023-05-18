@@ -109,6 +109,31 @@ class VM {
         return value;
     }
 
+    static auto isTruthy(JSBasicValue value) -> bool {
+        switch (value.getKind()) {
+        case JSValueKind::Boolean: {
+            return value.getValue<JSBoolean>();
+        }
+        case JSValueKind::Number: {
+            return value.getValue<JSNumber>() != 0 &&
+                   value.getValue<JSNumber>() != 0.0;
+        }
+        case JSValueKind::Undefined:
+            return false;
+        case JSValueKind::String:
+            if (value.getValue<JSString>().empty()) {
+                return false;
+            }
+        case JSValueKind::Null:
+            return false;
+
+        default:
+            return true;
+        }
+
+        return true;
+    }
+
     private:
     // Instruction pointer, since we're not doing memory mapped I/O
     // and all execution is in a single context the instruction pointer
