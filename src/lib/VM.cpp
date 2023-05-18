@@ -18,20 +18,17 @@ auto VM::run() -> VMResult {
         // TODO: maybe switch disassembleInstruction to take an OPCode
         // auto prev = ip - 1;
         // disas.disassembleInstruction(prev);
-        fmt::print("Executing instruction : {}\n", (uint8_t)inst);
+        // fmt::print("Executing instruction : {}\n", (uint8_t)inst);
         switch (inst) {
         case OPCode::Return: {
             return VMResult::Ok;
         }
         case OPCode::Constant: {
-            fmt::print("Executing instruction Constant\n");
             // Next opcode after OPConstant is the byte offset
             // in the constants pool.
             auto offset = fetch();
-            fmt::print("Offset : {}\n", (int)offset);
             assert(ctx != nullptr);
             JSBasicValue value = ctx->loadConstant((size_t)offset);
-            fmt::print("JSBasicValue: {}\n", value.toString());
             push(value);
             break;
         }
