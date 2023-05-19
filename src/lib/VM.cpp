@@ -119,6 +119,20 @@ auto VM::run() -> VMResult {
             push(res);
             break;
         }
+        case OPCode::SetGlobal: {
+            // fetch global constant offset
+            auto offset = fetch();
+            // load variable name from constants table
+            JSBasicValue name = ctx->loadConstant((size_t)offset);
+            // load value on top of the stack that's assigned
+            // to the variable
+            auto value = pop();
+            auto ident = name.getValue<JSString>();
+            fmt::print("Name : {}", ident);
+            fmt::print("Value : {}", value.getValue<JSNumber>());
+            globals[ident] = value;
+            break;
+        }
         default:
             fmt::print("Unexpected instruction {} ", (uint8_t)inst);
             break;

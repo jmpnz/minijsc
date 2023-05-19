@@ -116,10 +116,10 @@ auto BytecodeCompiler::visitGroupingExpr(JSGroupingExpr* expr) -> void {
 }
 
 /// Visit a variable expression.
-auto BytecodeCompiler::visitVarExpr(JSVarExpr* /*expr*/) -> void {}
+auto BytecodeCompiler::visitVarExpr(JSVarExpr* expr) -> void {}
 
 /// Visit an assignment expression.
-auto BytecodeCompiler::visitAssignExpr(JSAssignExpr* /*expr*/) -> void {}
+auto BytecodeCompiler::visitAssignExpr(JSAssignExpr* exor) -> void {}
 
 /// Visit a call expression.
 auto BytecodeCompiler::visitCallExpr(JSCallExpr* /*expr*/) -> void {}
@@ -140,7 +140,11 @@ auto BytecodeCompiler::visitWhileStmt(JSWhileStmt* stmt) -> void {}
 auto BytecodeCompiler::visitForStmt(JSForStmt* stmt) -> void {}
 
 /// Visit a variable declaration.
-auto BytecodeCompiler::visitVarDecl(JSVarDecl* stmt) -> void {}
+auto BytecodeCompiler::visitVarDecl(JSVarDecl* stmt) -> void {
+    auto ident = stmt->getName();
+    compile(stmt->getInitializer().get());
+    emit(OPCode::SetGlobal, ident);
+}
 
 /// Visit a function declaration.
 auto BytecodeCompiler::visitFuncDecl(JSFuncDecl* stmt) -> void {}

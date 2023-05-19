@@ -38,6 +38,12 @@ enum class OPCode : uint8_t {
     Lesser,
     GreaterEqual,
     LesserEqual,
+    Null,
+    True,
+    False,
+    Pop,
+    GetGlobal,
+    SetGlobal,
 };
 
 /// Bytecode is a sequence of opcodes.

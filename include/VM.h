@@ -6,6 +6,7 @@
 #define VM_H
 
 #include <memory>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -109,6 +110,20 @@ class VM {
         return value;
     }
 
+    // Define a global value.
+    auto defineGlobal(std::string name, const JSBasicValue& value) -> void {
+        globals[name] = value;
+    }
+
+    // Resolve a global value.
+    auto resolveGlobal(std::string name) -> JSBasicValue {
+        if (globals.contains(name)) {
+            return globals[name];
+        }
+        // Else return undefined
+        return JSBasicValue();
+    }
+
     static auto isTruthy(JSBasicValue value) -> bool {
         switch (value.getKind()) {
         case JSValueKind::Boolean: {
@@ -145,6 +160,8 @@ class VM {
     VMStack stack;
     // Execution context.
     std::shared_ptr<VMContext> ctx;
+    // Storage for global variables.
+    std::unordered_map<std::string, JSBasicValue> globals;
 #ifdef DEBUG_TRACE_EXECUTION
     // If debug flag is active load a disassembler
     Disassembler disas;
