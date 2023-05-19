@@ -1199,6 +1199,28 @@ TEST_CASE("testing bytecode compiler") {
         vm.run();
         CHECK(vm.pop().getValue<JSBoolean>() == true);
     }
+    SUBCASE("testing compilation of complicated expressions with VM run") {
+        auto source   = "!(5 - 4 > 3 * 6) == false;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseExpr();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->compile(expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        for (auto& v : bc) {
+            fmt::print("{}  ", (uint8_t)v);
+        }
+        for (auto& item : pool) {
+            fmt::print("{} ", item.toString());
+        }
+        fmt::print("\n-- Bytecode End --\n");
+        vm.run();
+        CHECK(vm.pop().getValue<JSBoolean>() == false);
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {
