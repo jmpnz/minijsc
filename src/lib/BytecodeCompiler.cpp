@@ -9,11 +9,17 @@
 #include "BytecodeCompiler.h"
 #include "JSValue.h"
 #include "fmt/core.h"
+
+#include <cassert>
 #include <memory>
 
 namespace minijsc {
 
 auto BytecodeCompiler::visitLiteralExpr(JSLiteralExpr* expr) -> void {
+    if (expr == nullptr) {
+        emit(OPCode::Constant, JSBasicValue());
+        return;
+    }
     auto value = std::static_pointer_cast<JSBasicValue>(expr->getValue());
     emit(OPCode::Constant, *value);
     // emit(OPCode::Return);
@@ -142,7 +148,12 @@ auto BytecodeCompiler::visitForStmt(JSForStmt* stmt) -> void {}
 /// Visit a variable declaration.
 auto BytecodeCompiler::visitVarDecl(JSVarDecl* stmt) -> void {
     auto ident = stmt->getName();
-    compile(stmt->getInitializer().get());
+    if (stmt->getInitializer().get() != nullptr) {
+        compile(stmt->getInitializer().get());
+    } else {
+        // If no assignment then set it as undefined.
+        emit(OPCode::Constant, JSBasicValue());
+    }
     emit(OPCode::SetGlobal, ident);
 }
 

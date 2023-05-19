@@ -1244,6 +1244,22 @@ TEST_CASE("testing bytecode compiler") {
         vm.run();
         CHECK(vm.resolveGlobal("a").getValue<JSNumber>() == 42.);
     }
+    SUBCASE("testing compilation of variable declarations") {
+        auto source   = "var a;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto expr     = parser.parseDecl();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        compiler->visitVarDecl((JSVarDecl*)expr.get());
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        vm.run();
+        CHECK(vm.resolveGlobal("a").getValue<JSUndefined>() ==
+              std::monostate());
+    }
 }
 
 TEST_CASE("testing bytecode virtual machine") {
