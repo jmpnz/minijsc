@@ -122,7 +122,10 @@ auto BytecodeCompiler::visitGroupingExpr(JSGroupingExpr* expr) -> void {
 }
 
 /// Visit a variable expression.
-auto BytecodeCompiler::visitVarExpr(JSVarExpr* expr) -> void {}
+auto BytecodeCompiler::visitVarExpr(JSVarExpr* expr) -> void {
+    auto ident = expr->getName().getLexeme();
+    emit(OPCode::GetGlobal, ident);
+}
 
 /// Visit an assignment expression.
 auto BytecodeCompiler::visitAssignExpr(JSAssignExpr* exor) -> void {}

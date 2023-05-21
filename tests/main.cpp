@@ -1244,7 +1244,8 @@ TEST_CASE("testing bytecode compiler") {
         vm.run();
         CHECK(vm.resolveGlobal("a").getValue<JSNumber>() == 42.);
     }
-    SUBCASE("testing compilation of variable declarations") {
+    SUBCASE(
+        "testing compilation of variable declarations with null initializer") {
         auto source   = "var a;";
         auto lexer    = JSLexer(source);
         auto tokens   = lexer.scanTokens();
@@ -1259,6 +1260,24 @@ TEST_CASE("testing bytecode compiler") {
         vm.run();
         CHECK(vm.resolveGlobal("a").getValue<JSUndefined>() ==
               std::monostate());
+    }
+    SUBCASE("testing compilation of variable declarations and expressions") {
+        auto source   = "var a = 42;\nvar b = a;";
+        auto lexer    = JSLexer(source);
+        auto tokens   = lexer.scanTokens();
+        auto parser   = JSParser(std::move(tokens));
+        auto stmts    = parser.parse();
+        auto compiler = std::make_shared<BytecodeCompiler>();
+        // expr->accept(compiler.get());
+        for (auto& stmt : stmts) {
+            compiler->compile(stmt.get());
+        }
+        auto bc   = compiler->getBytecode();
+        auto pool = compiler->getConstantsPool();
+        auto vm   = VM(bc, pool);
+        vm.run();
+        CHECK(vm.resolveGlobal("a").getValue<JSNumber>() == 42);
+        CHECK(vm.resolveGlobal("b").getValue<JSNumber>() == 42);
     }
 }
 

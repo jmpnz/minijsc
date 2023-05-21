@@ -128,9 +128,23 @@ auto VM::run() -> VMResult {
             // to the variable
             auto value = pop();
             auto ident = name.getValue<JSString>();
-            fmt::print("Name : {}", ident);
-            fmt::print("Value : {}", value.getValue<JSNumber>());
+            fmt::print("Name : {}\n", ident);
+            fmt::print("Value : {}\n", value.getValue<JSNumber>());
             globals[ident] = value;
+            break;
+        }
+        case OPCode::GetGlobal: {
+            fmt::print("OPCode::GetGlobal");
+            // fetch constant offset
+            auto offset = fetch();
+            // load variable value from constant table
+            JSBasicValue name = ctx->loadConstant((size_t)offset);
+            auto ident        = name.getValue<JSString>();
+            auto value        = globals[ident];
+            fmt::print("GetGlobal=>Name : {}\n", ident);
+            fmt::print("GetGlobal=>Value : {}\n", value.getValue<JSNumber>());
+            fmt::print("Pushing value to the stack.");
+            push(value);
             break;
         }
         default:

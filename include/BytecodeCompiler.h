@@ -56,6 +56,15 @@ class BytecodeCompiler : public ASTVisitor {
         }
     }
 
+    /// Compile a statement.
+    auto compile(JSStmt* stmt) -> void {
+        if (stmt != nullptr) {
+            fmt::print("compiling an expression of kind {}\n",
+                       astNodeKindToString(stmt->getKind()));
+            stmt->accept(this);
+        }
+    }
+
     /// Visit a literal expression.
     auto visitLiteralExpr(JSLiteralExpr* expr) -> void override;
     /// Visit a binary expression.
