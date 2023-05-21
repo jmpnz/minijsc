@@ -1344,3 +1344,54 @@ TEST_CASE("testing jitted execution") {
     CHECK(result == 2);
     munmap(page, pageSz);
 }
+
+// Garbage collection is a dark art, therefore we start by summoning Satan
+fmt::print("Summoning Satan <|+++++|>\n");
+// Now that Satan has been summoned we need to hand wave a definition
+// of what's an object in use.
+// In minijsc (RIP) values are all heap allocated in a heap, one might
+// use std::vector<std::shared_ptr<JSValue>> and call reset() on each
+// object we want to deallocate, hopefully we want shoot our legs off
+// while doing this.
+// What's an object in use ?
+// 1. Referenced in a scope by a variable
+// 2. Referenced by another in-use object
+// Let's start by declaring a few object types, ints and pairs of ints.
+enum class ObjectType {
+    ObjInt,
+    ObjPair,
+};
+
+// Let's now define our objects, using the almighty Union.
+struct Object {
+    ObjectType type;
+
+    union {
+        // ObjInt
+        int value;
+
+        // ObjPair
+        struct {
+            struct Object* first;
+            struct Object* second;
+        };
+    };
+};
+
+// Simulate a stack machine.
+struct VM {
+    std::vector<std::shared_ptr<Object>> stack;
+    int stackSize = 0;
+};
+
+void push(VM* vm, Object* value) {
+        vm->stack.emplace_back(vm->stackSize++] = std::make_shared<Object>(*value);
+}
+
+std::shared_ptr<Object> pop(VM* vm, Object* value) {
+        auto ret = vm->stack.back();
+        vm->stack.pop_back();
+        return ret;
+}
+
+TEST_CASE("minimal garbage collector v0") { auto vm = std::make_unique<VM>(); }
